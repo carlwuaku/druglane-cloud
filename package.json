@@ -2,12 +2,10 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "vite",
-        "build": "vite build"
+        "dev": "echo 'Frontend moved to Angular - run from frontend/ directory'",
+        "build": "echo 'Frontend moved to Angular - run from frontend/ directory'"
     },
     "devDependencies": {
-        "axios": "^1.6.1",
-        "laravel-vite-plugin": "^0.8.0",
-        "vite": "^4.0.0"
+        "axios": "^1.6.8"
     }
 }

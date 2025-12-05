@@ -17,3 +17,17 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+.early.coverage
+
+# Angular Frontend
+/frontend/node_modules
+/frontend/dist
+/frontend/.angular
+/frontend/.env
+frontend/npm-debug.log
+frontend/yarn-error.log
+
+# Backup files
+/storage/app/backups/*.db
+/storage/app/backups/*.sqlite
