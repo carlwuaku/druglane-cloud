@@ -1,0 +1,14 @@
+<mat-card class="" appearance="raised">
+  <mat-card-header>
+    <div mat-card-avatar class="example-header-image w-f "></div>
+    <mat-card-title><ng-content select="card-title"></ng-content></mat-card-title>
+    <mat-card-subtitle><ng-content select="card-subtitle"></ng-content></mat-card-subtitle>
+  </mat-card-header>
+  <ng-content select="card-image"></ng-content>
+  <mat-card-content>
+    <ng-content select="card-body"></ng-content>
+  </mat-card-content>
+  <mat-card-actions>
+    <ng-content select="card-actions"></ng-content>
+  </mat-card-actions>
+</mat-card>

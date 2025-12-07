@@ -1,0 +1,10 @@
+<button
+  mat-raised-button
+  [color]="buttonColor"
+  (click)="exportToPdf()"
+  [disabled]="isExporting"
+  class="pdf-export-button">
+  <mat-icon *ngIf="!isExporting">{{ icon }}</mat-icon>
+  <mat-spinner *ngIf="isExporting" diameter="20" class="spinner"></mat-spinner>
+  <span>{{ isExporting ? 'Exporting...' : buttonText }}</span>
+</button>

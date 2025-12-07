@@ -1,0 +1,17 @@
+<div class="secure-image-container" [ngClass]="cssClass">
+  @if (loading) {
+  <!-- Loading state -->
+  <div class="loading-placeholder">
+    <div class="spinner"></div>
+    <span>Loading...</span>
+  </div>
+  } @else if (imageUrl) {
+  <!-- Image loaded -->
+  <img [src]="imageUrl" [alt]="alt" [height]="height" [class]="cssClass" (error)="onImageError()" />
+  } @else if (error && !fallbackImage) {
+  <!-- Error state -->
+  <div class="error-placeholder">
+    <span>Failed to load image</span>
+  </div>
+  }
+</div>

@@ -1,0 +1,25 @@
+<button type="button" matTooltip="Add Item" mat-icon-button><mat-icon>add</mat-icon> </button>
+<mat-accordion>
+  @for (key of objectKeys(jsonObject); track key) {
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <button mat-icon-button><mat-icon>remove</mat-icon></button>
+          <app-inline-editor [text]="key" (valueChanged)="setPropertyValue(key, $event)"></app-inline-editor>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>
+        @if (!isObject(jsonObject[key])) {
+          <span>
+            <app-inline-editor (valueChanged)="setPropertyValue(key, $event)" [text]="jsonObject[key]"></app-inline-editor>
+          </span>
+        }
+        @if (isObject(jsonObject[key])) {
+          <app-json-editor [jsonObject]="jsonObject[key]">
+          </app-json-editor>
+        }
+      </p>
+    </mat-expansion-panel>
+  }
+
+</mat-accordion>

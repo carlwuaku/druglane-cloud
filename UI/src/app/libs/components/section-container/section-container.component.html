@@ -1,0 +1,8 @@
+<div class="_container" [ngClass]="containerStyle">
+  <div class="title-wrapper">
+    <h3 class="title">{{ title }}</h3>
+  </div>
+  <div class="_content" [ngClass]="childStyle">
+    <ng-content></ng-content>
+  </div>
+</div>

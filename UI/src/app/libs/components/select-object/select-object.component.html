@@ -1,0 +1,69 @@
+@if (loading) {
+<app-loading></app-loading>
+}
+@if(error) {<app-error-message>An error occured. Please refresh the page to try again</app-error-message> }
+@if (type === 'select') {
+<mat-form-field class="flex-auto">
+  <mat-label>{{fieldLabel}}</mat-label>
+  <mat-select class="flex-auto" [(value)]="selectedItem" (selectionChange)="selectionMade()" appearance="outline"
+    [multiple]="selection_mode === 'multiple'">
+    <mat-option>None</mat-option>
+    <!-- if simple array of strings or numbers, output the values. if objects, read the props -->
+    @for (object of objects; track object) {
+    <mat-option [value]="object[keyProperty] || object">{{object[labelProperty] ||
+      object}} </mat-option>
+    }
+  </mat-select>
+</mat-form-field>
+}
+
+
+
+@if (type === 'datalist') {
+<mat-form-field class="flex-auto">
+  <mat-label>{{fieldLabel}}</mat-label>
+  <input type="text" matInput class="flex-auto" [attr.list]="dataListId" #dataListInput [(ngModel)]="selectedItem"
+    (change)="selectionMade()" (keyup)="selectionMade()">
+  <datalist id="{{dataListId}}">
+    @for (object of objects; track object) {
+    <option [value]="object[keyProperty] || object">{{object[labelProperty] || object}}
+    </option>
+    }
+  </datalist>
+</mat-form-field>
+}
+
+
+@if (type === 'search') {
+<div>
+  <mat-form-field appearance="fill">
+    <mat-label>{{fieldLabel}}</mat-label>
+    <input matInput type="text" class="form-control" [(ngModel)]="search_param" (ngModelChange)="selectionMade()"
+      (keyup.enter)="search()">
+    <button mat-icon-button matSuffix (click)="search()"><mat-icon>search</mat-icon> </button>
+  </mat-form-field>
+  @if (search_param && objects.length > 0) {
+  <mat-card [ngClass]="{'absolute z-10': !embedSearchResults }">
+    <div class="flex justify-end">
+      <button mat-raised-button color="primary" (click)="saveSearchSelection()">
+        <mat-icon>check</mat-icon>
+        Done</button>
+      <button mat-icon-button color="warn" (click)="search_param = ''">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <mat-card-content class="overflow-auto max-h-[350px]">
+      <mat-selection-list [(ngModel)]="selectedSearchItems">
+        @for (object of objects; track object; let i = $index) {
+        <mat-list-option [value]="object">
+          {{i+1 +". "+object[labelProperty]}}
+        </mat-list-option>
+        }
+      </mat-selection-list>
+    </mat-card-content>
+    <!-- <p-autoComplete [(ngModel)]="selectedItem" [dropdown]="true" [field]="labelProperty" [suggestions]="objects"
+      (completeMethod)="search($event)"></p-autoComplete> -->
+  </mat-card>
+  }
+</div>
+}

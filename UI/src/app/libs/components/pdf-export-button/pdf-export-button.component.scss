@@ -1,0 +1,14 @@
+.pdf-export-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .spinner {
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  mat-icon {
+    margin-right: 4px;
+  }
+}

@@ -1,0 +1,192 @@
+<div class="flex flex-col gap-2 w-full h-full max-h-[90vh]">
+  <div class="flex mb-4" *ngIf="customClassLegends.length > 0">
+    <div class="flex gap-1">
+      <div *ngFor="let legend of customClassLegends" class="flex gap-1 items-center">
+        <div class="w-3 h-3 border" [ngClass]="legend.classrule"></div>
+        <span>{{legend.label}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Select All Option -->
+  <div class="mb-4" *ngIf="rowSelection !== undefined">
+    <mat-checkbox (change)="$event ? toggleAllRows($event) : null" [checked]="selection.hasValue() && isAllSelected()"
+      [indeterminate]="selection.hasValue() && !isAllSelected()" [aria-label]="checkboxLabel()">
+      Select All
+    </mat-checkbox>
+  </div>
+
+  <!-- Card Grid -->
+  <div class="flex flex-col gap-2 flex-auto overflow-auto">
+    <mat-card *ngFor="let item of dataSource.data; let i = index" class="card-item" [ngClass]="getRowClasses(item)">
+
+      <!-- Card Header with Selection and Main Field -->
+      <mat-card-header class="card-header">
+        <div class="header-content">
+          <!-- Selection Checkbox -->
+          <mat-checkbox *ngIf="rowSelection !== undefined" (click)="$event.stopPropagation()"
+            (change)="$event ? selection.toggle(item) : null" [checked]="selection.isSelected(item)"
+            [aria-label]="checkboxLabel(item)" class="selection-checkbox">
+          </mat-checkbox>
+
+          <!-- Main Title Field -->
+          <div class="title-container">
+            <h3 class="card-title" *ngIf="titleField">
+              <ng-container *ngIf="getCustomTemplate(titleField) as customTemplate">
+                <ng-container
+                  *ngTemplateOutlet="customTemplate; context: { $implicit: titleField, data: item }"></ng-container>
+              </ng-container>
+              <span *ngIf="!getCustomTemplate(titleField)" [innerHTML]="item[titleField]"></span>
+            </h3>
+
+            <!-- Row Number if no title field -->
+            <h3 class="card-title" *ngIf="!titleField">
+              #{{offset + i + 1}}
+            </h3>
+          </div>
+
+          <!-- Edit Actions in Header -->
+          <div class="edit-actions" *ngIf="enableInlineEditing">
+            <button *ngIf="!isRowEditing(item)" mat-icon-button color="primary" (click)="startEditRow(item)"
+              matTooltip="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+
+            <div *ngIf="isRowEditing(item)" class="edit-buttons">
+              <button mat-icon-button color="primary" (click)="saveRow(item)" matTooltip="Save">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="cancelEdit(item)" matTooltip="Cancel">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-header>
+
+      <!-- Card Content -->
+      <mat-card-content class="card-content">
+        <div class="field-grid">
+          <div *ngFor="let column of getContentColumns()" class="field-item"
+            [ngClass]="getColumnClass(column + '-' + replaceSpaceWithUnderscore(item[column]))">
+
+            <div class="field-label">{{getColumnLabel(column)}}</div>
+
+            <div class="field-value">
+              <!-- Custom Template -->
+              <ng-container *ngIf="getCustomTemplate(column) as customTemplate">
+                <ng-container
+                  *ngTemplateOutlet="customTemplate; context: { $implicit: column, data: item }"></ng-container>
+              </ng-container>
+
+              <!-- Editable Fields -->
+              <ng-container *ngIf="!getCustomTemplate(column) && isColumnEditable(column)">
+                <ng-container [ngSwitch]="getEditableColumnConfig(column)?.type">
+
+                  <!-- Text Input -->
+                  <mat-form-field subscriptSizing="dynamic" *ngSwitchCase="'text'" appearance="outline"
+                    class="edit-field">
+                    <input matInput [value]="item[column]" #inputRef (blur)="onCellEdit(item, column, inputRef.value)"
+                      (keyup.enter)="onCellEdit(item, column, inputRef.value)">
+                  </mat-form-field>
+
+                  <!-- Number Input -->
+                  <mat-form-field subscriptSizing="dynamic" *ngSwitchCase="'number'" appearance="outline"
+                    class="edit-field">
+                    <input matInput type="number" [value]="item[column]" #numInputRef
+                      (blur)="onCellEdit(item, column, numInputRef.value)"
+                      (keyup.enter)="onCellEdit(item, column, numInputRef.value)">
+                  </mat-form-field>
+
+                  <!-- Select Dropdown -->
+                  <mat-form-field subscriptSizing="dynamic" *ngSwitchCase="'select'" appearance="outline"
+                    class="edit-field">
+                    <mat-select [value]="item[column]" (selectionChange)="onCellEdit(item, column, $event.value)">
+                      <mat-option *ngFor="let option of getSelectOptions(column)" [value]="option.value">
+                        {{option.label}}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <!-- Date Picker -->
+                  <mat-form-field subscriptSizing="dynamic" *ngSwitchCase="'date'" appearance="outline"
+                    class="edit-field">
+                    <input matInput [matDatepicker]="picker" [value]="item[column]"
+                      (dateChange)="onCellEdit(item, column, $event.value)">
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                  </mat-form-field>
+
+                  <!-- Checkbox -->
+                  <mat-checkbox *ngSwitchCase="'checkbox'" [checked]="item[column]"
+                    (change)="onCellEdit(item, column, $event.checked)">
+                  </mat-checkbox>
+                </ng-container>
+              </ng-container>
+
+              <!-- Read-only Fields -->
+              <ng-container *ngIf="!getCustomTemplate(column) && !isColumnEditable(column)">
+                <!-- Image Fields -->
+                <p-image *ngIf="column === 'picture' || column === 'qr_code'" [src]="item[column]" [preview]="true"
+                  alt="Image" width="80" class="card-image">
+                </p-image>
+
+                <!-- Link Fields -->
+                <a mat-stroked-button color="primary"
+                  *ngIf="isLink(item[column]) && column !== 'picture' && column !== 'qr_code'" [href]="item[column]"
+                  target="_blank" class="link-button">
+                  <mat-icon>open_in_new</mat-icon>
+                  Open Link
+                </a>
+
+                <!-- HTML Fields -->
+                <button mat-stroked-button color="primary" (click)="viewHtml(item[column])" *ngIf="isHtml(item[column])"
+                  class="html-button">
+                  <mat-icon>code</mat-icon>
+                  View HTML
+                </button>
+
+                <!-- Regular Text Fields -->
+                <div
+                  *ngIf="!isLink(item[column]) && !isHtml(item[column]) && column !== 'picture' && column !== 'qr_code'"
+                  class="field-text" [innerHTML]="item[column]">
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Card Actions -->
+      <mat-card-actions class="card-actions" *ngIf="showActions && item.actions && item.actions.length > 0">
+        <!-- Single Action -->
+        <ng-container *ngIf="item.actions.length === 1">
+          <button [disabled]="item.actions[0].disabled" *ngIf="item.actions[0].type === 'button'"
+            (click)="item.actions[0].onClick(item)" mat-flat-button [color]="item.actions[0].color || 'primary'"
+            [ngClass]="item.actions[0].className" class="action-button">
+            <mat-icon *ngIf="item.actions[0].icon">{{ item.actions[0].icon }}</mat-icon>
+            <span>{{ item.actions[0].label }}</span>
+          </button>
+
+          <a mat-flat-button color="primary" *ngIf="item.actions[0].type === 'link'"
+            routerLink="/{{item.actions[0].link}}/{{item[item.actions[0].linkProp]}}"
+            [queryParams]="item.actions[0].urlParams" class="action-button">
+            <mat-icon *ngIf="item.actions[0].icon">{{ item.actions[0].icon }}</mat-icon>
+            <span>{{ item.actions[0].label }}</span>
+          </a>
+        </ng-container>
+
+        <!-- Multiple Actions -->
+        <ng-container *ngIf="item.actions.length > 1">
+          <button *ngFor="let action of item.actions" [disabled]="action.disabled" mat-stroked-button
+            class="action-button" (click)="action.type === 'button' ? action.onClick(item) : null"
+            [routerLink]="action.type === 'link' ? '/' + action.link + '/' + item[action.linkProp] : null"
+            [queryParams]="action.type === 'link' ? action.urlParams : null">
+            <mat-icon *ngIf="action.icon">{{ action.icon }}</mat-icon>
+            <span>{{ action.label }}</span>
+          </button>
+        </ng-container>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

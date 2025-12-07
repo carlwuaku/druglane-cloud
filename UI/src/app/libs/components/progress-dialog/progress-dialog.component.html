@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+<mat-dialog-content>
+  @for (item of data.progressItems; track $index) {
+  <div>
+    <h3>{{ item.title }}</h3>
+    <mat-progress-bar mode="determinate" [value]="item.progress"></mat-progress-bar>
+    <p>{{ item.progress }}%</p>
+  </div>
+  }
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="onCancel()" [disabled]="data.disableCancel">Cancel</button>
+</mat-dialog-actions>

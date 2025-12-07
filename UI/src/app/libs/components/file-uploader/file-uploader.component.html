@@ -1,0 +1,47 @@
+@if (originalImage) {
+  <span>
+    Current:
+    <div pDefer>
+      <ng-template>
+        <p-image [src]="originalImage" [preview]="true" alt="Image" width="100"></p-image>
+      </ng-template>
+    </div>
+  </span>
+}
+@if (uploadedImage) {
+  <span>
+    New:
+    <div pDefer>
+      <ng-template>
+        <p-image [src]="uploadedImage" [preview]="true" alt="Image" width="100"></p-image>
+      </ng-template>
+    </div>
+  </span>
+}
+
+<div class="flex flex-wrap gap-1 items-center">
+  <div class="flex flex-col">
+    <button mat-raised-button color="primary" type="button" [disabled]="!multiple && selectedFiles.length > 0"
+    (click)="triggerFileInput()">Select Files</button>
+    @if (maxFileSize && maxFileSize > 0) {
+      <p>Max {{maxFileSize}}MB </p>
+    }
+  </div>
+  <input class="hidden" [accept]="accept" #fileInput type="file" [multiple]="multiple"
+    (change)="onFileSelected($event)">
+  @for (item of previews; track item) {
+    <div class="flex flex-col items-center border-dashed border p-1 rounded-md">
+      @if (item.file.type.startsWith('image/')) {
+        <img [src]="item.preview" alt="Preview" [style.width.px]="previewHeight"
+          [style.height.px]="previewHeight">
+      }
+      @if (!item.file.type.startsWith('image/')) {
+        <img [src]="item.preview" alt="File icon"
+          [style.width.px]="previewHeight" [style.height.px]="previewHeight">
+      }
+      <p class="overflow-ellipsis w-[100px]" [title]="item.file.name">{{ item.file.name }} </p>
+      <button mat-stroked-button class="text-sm" color="warn" (click)="remove(item.file)"><mat-icon>close</mat-icon>
+    Remove</button>
+  </div>
+}
+</div>

@@ -1,0 +1,29 @@
+._container {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 20px;
+  margin-top: 15px;
+  padding-bottom: 0;
+}
+
+.title-wrapper {
+  position: relative;
+  top: -32px;
+  background-color: #ebecf1;
+  padding: 0 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: max-content;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+._content {
+  margin-top: 5px;
+  position: relative;
+  top: -32px;
+}

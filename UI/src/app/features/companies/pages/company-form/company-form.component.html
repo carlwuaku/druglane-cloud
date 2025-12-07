@@ -1,0 +1,28 @@
+<div class="company-form-container p-4">
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>
+                <div class="flex items-center gap-2">
+                    <button mat-icon-button (click)="cancel()">
+                        <mat-icon>arrow_back</mat-icon>
+                    </button>
+                    {{ formTitle }}
+                </div>
+            </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+            @if (loading && formFields.length === 0) {
+            <div class="flex justify-center py-8">
+                <mat-icon class="animate-spin">refresh</mat-icon>
+                <span class="ml-2">Loading...</span>
+            </div>
+            } @else {
+            <app-form-generator [fields]="formFields" [url]="'api/companies'"
+                [submitButtonText]="isEditMode ? 'Update Company' : 'Create Company'" cancelButtonLabel="Cancel"
+                (onSubmit)="onSubmit($event)" (onCancel)="cancel()" [sendAsJson]="true">
+            </app-form-generator>
+            }
+        </mat-card-content>
+    </mat-card>
+</div>

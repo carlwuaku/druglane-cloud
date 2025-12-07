@@ -1,0 +1,61 @@
+# Add these annotations above the respective methods in LicenseController.php
+
+## For validate() method:
+/**
+ * @OA\Post(
+ *     path="/api/license/validate",
+ *     tags={"License"},
+ *     summary="Validate license key",
+ *     description="Check if a license key exists and is valid",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"license_key"},
+ *             @OA\Property(property="license_key", type="string", example="ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12-3456")
+ *         )
+ *     ),
+ *     @OA\Response(response=200, description="License is valid"),
+ *     @OA\Response(response=404, description="Invalid license key"),
+ *     @OA\Response(response=403, description="License expired or suspended")
+ * )
+ */
+
+## For activate() method:
+/**
+ * @OA\Post(
+ *     path="/api/license/activate",
+ *     tags={"License"},
+ *     summary="Activate license",
+ *     description="One-time activation with machine ID",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"license_key","machine_id"},
+ *             @OA\Property(property="license_key", type="string"),
+ *             @OA\Property(property="machine_id", type="string")
+ *         )
+ *     ),
+ *     @OA\Response(response=200, description="Activated successfully"),
+ *     @OA\Response(response=409, description="Already activated on different machine")
+ * )
+ */
+
+## For checkActivation() method:
+/**
+ * @OA\Post(
+ *     path="/api/license/check-activation",
+ *     tags={"License"},
+ *     summary="Check activation status",
+ *     description="Verify license is still activated and valid",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"license_key","machine_id"},
+ *             @OA\Property(property="license_key", type="string"),
+ *             @OA\Property(property="machine_id", type="string")
+ *         )
+ *     ),
+ *     @OA\Response(response=200, description="Activation status"),
+ *     @OA\Response(response=403, description="Activated on different machine")
+ * )
+ */

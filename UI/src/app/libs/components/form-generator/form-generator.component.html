@@ -1,0 +1,221 @@
+<button *ngIf="enableShowHideButton" class="btn btn-sm btn-primary" (click)="showOrHide()">{{show ? 'Hide' : 'Show'}}
+    {{showHideButtonTitle}}</button>
+<form *ngIf="show" #form ngNativeValidate (submit)="formType === 'filter' ?  generateFilterUrl() : startSubmit() "
+    class=" flex flex-col gap-1">
+
+    <div [ngClass]="{'grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : layout === 'grid',
+      'flex flex-wrap max-h-[300px] overflow-auto' : layout === 'horizontal',
+      'flex flex-col gap-1' : layout === 'vertical'
+    }">
+
+        <ng-container *ngFor="let field of fields; let i = index">
+            <div *ngIf="isRow(field)" class="flex gap-1 justify-between p-2 flex-wrap">
+                <div *ngFor="let subField of field" class="flex-col gap-1 flex-auto">
+                    <label>{{subField.label}} <span *ngIf="subField.required">*</span> </label>
+                    <div class="text-gray-500 text-sm">{{subField.hint}}</div>
+                    <div *ngIf="subField.showOnly === true || mode === 'view'; else renderSubField">
+                        <ng-container
+                            *ngTemplateOutlet="renderReadOnly; context: { $implicit: subField }"></ng-container>
+                    </div>
+                    <ng-template #renderSubField>
+                        <ng-container *ngTemplateOutlet="renderField; context: { $implicit: subField }"></ng-container>
+                    </ng-template>
+                </div>
+            </div>
+            <div *ngIf="isFormField(field)" class="flex flex-col gap-1">
+
+                <label>{{field.label}} <span *ngIf="field.required">*</span> </label>
+                <div class="text-gray-500 text-sm">{{field.hint}}</div>
+
+                <div *ngIf="field.showOnly === true || mode === 'view'; else renderRowField">
+                    <ng-container *ngTemplateOutlet="renderReadOnly; context: { $implicit: field }"></ng-container>
+                </div>
+                <ng-template #renderRowField>
+                    <ng-container *ngTemplateOutlet="renderField; context: { $implicit: field }"></ng-container>
+                </ng-template>
+            </div>
+
+        </ng-container>
+    </div>
+    <ng-content></ng-content>
+    <div *ngIf="mode === 'edit'" class="flex gap-1 border-t border-gray-300 p-2"
+        [ngClass]="{'sticky left-0': layout === 'horizontal'}">
+        <ng-content select="[submitButtons]"></ng-content>
+        <button type="button" *ngIf="showResetButton" mat-stroked-button class="warn"
+            (click)="resetForm()">{{resetButtonText}}</button>
+
+        <button type="submit" *ngIf="showSubmitButton" matButton="filled" color="primary"
+            [disabled]="!isFilterFormValid() || !allowSubmit">{{submitButtonText}}</button>
+
+    </div>
+</form>
+<ng-template #renderReadOnly let-field>
+
+    <!-- if image, show image -->
+    <ng-container [ngSwitch]="field.type">
+        <app-secure-image *ngSwitchCase="'picture'" [filename]="field.value" [alt]="field.label"
+            cssClass="rounded  h-32 self-start">
+        </app-secure-image>
+        <!-- <img *ngSwitchCase="'file'" src="{{field.value}}" alt="{{field.label}}" height="100"> -->
+        <ng-container>
+            <div *ngSwitchCase="'file'" class="text-[16px]">{{field.value ? 'File uploaded' : 'No file uploaded'}}</div>
+        </ng-container>
+        <ng-container *ngSwitchDefault> <span class="text-[16px]">
+                <!-- if it's only a label just show the label. this will be used to display some text that does not represent anything the user is suppposed to submit data for -->
+                <!-- if it's a radio button show the label -->
+                @if (field.type === 'radio') {
+                {{field | fieldOptionKey}}
+                }
+                @else {
+                {{field.value}}
+                }
+
+            </span>
+        </ng-container>
+    </ng-container>
+    <mat-divider class="my-2"></mat-divider>
+</ng-template>
+<ng-template #renderField let-field>
+
+    <ng-container *ngIf="getCustomTemplate(field.name) as customTemplate">
+        <ng-container
+            *ngTemplateOutlet="customTemplate; context: { $implicit: field, onChange: setFieldValue.bind(this) }"></ng-container>
+    </ng-container>
+    <ng-container *ngIf="!getCustomTemplate(field.name)" [ngSwitch]="field.type">
+        <div *ngSwitchCase="'radio'" class="flex flex-col gap-1">
+            <span *ngFor="let option of field.options">
+                <input type="radio" [value]="option.value" [(ngModel)]="field.value" name="{{field.name}}" />
+                {{option.key}}</span>
+        </div>
+        <mat-form-field class="flex-auto" *ngSwitchCase="'select'" appearance="outline">
+            <mat-select [required]="field.required" [(ngModel)]="field.value" name="{{field.name}}">
+                <ng-container *ngTemplateOutlet="selectFilter; context: { fieldName: field.name }"></ng-container>
+
+                <mat-option value="">Choose one</mat-option>
+                <mat-option
+                    *ngFor="let option of field.options | filterObjects:(filterTextMap[field.name] || ''):filterProperties"
+                    [value]="option.value">{{option.key}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="flex-auto" *ngSwitchCase="'multi-select'" appearance="outline">
+            <mat-select [required]="field.required" [(ngModel)]="field.value" name="{{field.name}}" multiple>
+                <ng-container *ngTemplateOutlet="selectFilter; context: { fieldName: field.name }"></ng-container>
+
+                <mat-option value="">Choose one</mat-option>
+                <mat-option
+                    *ngFor="let option of field.options | filterObjects:(filterTextMap[field.name] || ''):filterProperties"
+                    [value]="option.value">{{option.key}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field class="flex-auto" *ngSwitchCase="'textarea'">
+
+            <textarea class="flex-auto" [required]="field.required" matInput [(ngModel)]="field.value"
+                name="{{field.name}}"></textarea>
+        </mat-form-field>
+        <div *ngSwitchCase="'picture'" class="flex flex-col gap-1">
+            <app-file-uploader [assetType]="field.assetType" [maxFileSize]="field.maxFileSize || 1"
+                (onFilesSelected)="onFileSelected($event, field)" [existingImage]="field.value"
+                (onUploadCompleted)="setFieldValue($event, field)"
+                (onBase64Generated)="onFileBase64Selected($event, field)"
+                [accept]="field.file_types || '.jpg, .jpeg, .png'"></app-file-uploader>
+        </div>
+        <!-- if it's only a label just show the label. this will be used to display some text that does not represent anything the user is suppposed to submit data for -->
+        <div *ngSwitchCase="'label'" class="flex flex-col gap-1">
+
+        </div>
+        <div *ngSwitchCase="'file'" class="flex flex-col gap-1">
+
+            <app-file-uploader [assetType]="field.assetType" [maxFileSize]="field.maxFileSize || 5"
+                [accept]="field.file_types || '*/*'" (onFilesSelected)="onFileSelected($event, field)"
+                [existingImage]="field.value" (onUploadCompleted)="setFieldValue($event, field)"
+                (onBase64Generated)="onFileBase64Selected($event, field)"></app-file-uploader>
+        </div>
+
+
+        <mat-form-field class="flex-auto" *ngSwitchCase="'html'">
+
+            <textarea class="flex-auto" [required]="field.required" matInput [(ngModel)]="field.value"
+                name="{{field.name}}"></textarea>
+        </mat-form-field>
+
+        <app-json-editor (valueChange)="setFieldValue($event, field)" *ngSwitchCase="'json'"></app-json-editor>
+        <div *ngSwitchCase="'api'">
+            <!-- if it's a search, once a selection is made show the selected item and hide the selection thing till the user clears it -->
+            <div *ngIf="field.value && field.apiType === 'search'">
+                <div class="flex gap-1 items-center">
+
+                    <span>{{field.value}}</span>
+                    <button mat-icon-button color="warn" (click)="clearFieldValue(field)">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+            </div>
+            <app-select-object *ngIf="!field.value || field.apiType !== 'search'" [url]="field.api_url!"
+                [labelProperty]="field.apiLabelProperty || '' " [keyProperty]="field.apiKeyProperty || ''"
+                [type]="field.apiType!" [selection_mode]="field.selection_mode || 'single'" [initialValue]="field.value"
+                (selectionChanged)="setFieldValue($event, field)" [fieldLabel]="field.label">
+            </app-select-object>
+        </div>
+
+
+        <mat-form-field appearance="outline" *ngSwitchCase="'date'">
+
+            <input [(ngModel)]="field.value" matInput [matDatepicker]="picker" (click)="picker.open()"
+                (focus)="picker.open()" readonly>
+            <mat-hint>DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngSwitchCase="'datetime'">
+
+            <input [(ngModel)]="field.value" matInput [matDatepicker]="picker">
+            <mat-hint>DD/MM/YYYY HH:MM</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+
+        <mat-form-field appearance="outline" *ngSwitchCase="'date-range'">
+
+            <mat-date-range-input [rangePicker]="rangepicker">
+                <input matStartDate #start [value]="getDateRangeValue(field).start" placeholder="Start date">
+                <input matEndDate #end [value]="getDateRangeValue(field).end"
+                    (dateChange)="onDateChange(field, start, end)" placeholder="End date">
+            </mat-date-range-input>
+            <mat-hint>DD/MM/YYYY - DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="rangepicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #rangepicker></mat-date-range-picker>
+        </mat-form-field>
+
+        <app-string-array-input *ngSwitchCase="'list'" [items]="field.value" [name]="field.name"
+            (valueChanged)="setFieldValue($event, field)"></app-string-array-input>
+        <div *ngSwitchCase="'checkbox'">
+            <mat-checkbox [(ngModel)]="field.value" name="{{field.name}}" [required]="field.required">
+                {{field.checkboxLabel || ''}}
+            </mat-checkbox>
+        </div>
+
+        <mat-form-field *ngSwitchDefault appearance="outline">
+
+            <input matInput [required]="field.required" type="{{field.type}}" [(ngModel)]="field.value"
+                name="{{field.name}}" [attr.list]="formId+field.name+'_datalist'" />
+        </mat-form-field>
+
+        <datalist id="{{formId+field.name}}_datalist" *ngIf="field.options?.length > 0">
+            <option *ngFor="let option of field.options" [value]="option.value">{{option.key}}</option>
+        </datalist>
+
+
+
+    </ng-container>
+</ng-template>
+
+<ng-template #selectFilter let-fieldName="fieldName">
+    <div class="px-2 py-1 z-10 border-bottom-primary sticky top-0 bg-white border-bottom-primary">
+        <input type="text" matInput class="flex-auto w-full px-3 border rounded" placeholder="Search list"
+            [(ngModel)]="filterTextMap[fieldName]" [ngModelOptions]="{standalone: true}"
+            (click)="$event.stopPropagation()">
+    </div>
+</ng-template>

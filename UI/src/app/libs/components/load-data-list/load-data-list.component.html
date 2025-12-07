@@ -1,0 +1,186 @@
+<div class="flex flex-col gap-2 ">
+  <div class="flex flex-col gap-2 flex-wrap">
+    <div *ngIf="showTableTitle">
+      <ng-container *ngTemplateOutlet="header || defaultHeader">
+      </ng-container>
+      <ng-template #defaultHeader>
+        <h3 class="text-lg">{{tableTitle}}</h3>
+        <p *ngIf="hint">{{hint}}</p>
+      </ng-template>
+
+    </div>
+    <div class="flex gap-2 ">
+      <app-section-container *ngIf="showSearch" [title]="'Search'">
+        <form ngNativeValidate (ngSubmit)="search()" class="flex flex-row gap-1 align-middle items-center">
+          <mat-form-field [appearance]="'outline'" class="flex-auto">
+            <mat-label for="">Search</mat-label>
+            <input name="search" required matInput [(ngModel)]="searchParam" (change)="paramInputChanged()"
+              type="search">
+            @if(searchParam) { <button matSuffix type="button" (click)="clearSearch()" color="primary" mat-icon-button
+              class="danger mr-2">
+              <mat-icon>close</mat-icon></button>}
+            <button matSuffix type="submit" mat-flat-button color="primary" class="mr-2"> <mat-icon>search</mat-icon>
+              Search
+            </button>
+          </mat-form-field>
+
+        </form>
+      </app-section-container>
+
+      <div class="flex-grow">
+        <app-section-container [title]="'Filters'" *ngIf="showFilterButton">
+          <button *ngIf="!showAllFilters" mat-flat-button color="accent" [disabled]="filters.length < 1"
+            (click)="showFilterDialog()"><mat-icon>tune</mat-icon> Filter</button>
+
+          <mat-chip-set *ngIf="!showAllFilters" aria-label="Filters">
+            <mat-chip (removed)="removeFilter(filter)" *ngFor="let filter of filters | filterEmptyValues: 'value'">
+              {{filter.label}} :
+              <b>{{filter.value}}</b>
+              <button matChipRemove *ngIf="!filterIsInQueryParams(filter.name)">
+                <mat-icon>cancel</mat-icon>
+              </button>
+
+            </mat-chip>
+          </mat-chip-set>
+
+          <div *ngIf="showAllFilters"
+            [ngClass]="{'w-full': filtersLayout === 'grid' || filtersLayout === 'horizontal'}">
+            <app-form-generator [layout]="filtersLayout" (onSubmit)="filterSubmitted($event)"
+              [formType]="filterFormType" [fields]="filters" [resetButtonText]="'Clear all filters'"
+              [submitButtonText]="'Apply'"></app-form-generator>
+          </div>
+        </app-section-container>
+      </div>
+
+
+    </div>
+
+
+
+    <div class="flex  gap-2  items-center flex-wrap">
+
+
+
+      <!-- <span *ngIf="showDeleted">
+        <label>
+          <input (change)="getData()" type="checkbox" name="withDeleted" [(ngModel)]="withDeleted"> Show deleted entries
+        </label>
+      </span> -->
+      <app-section-container *ngIf="showSelectionContainer"
+        [title]="'With '+ selection.selected.length+' selected items'" class="flex  gap-1">
+
+        <ng-container *ngTemplateOutlet="selectionOptions">
+        </ng-container>
+        <!-- <span class="flex gap-1 items-center">
+
+                  <app-export-table *ngIf="showExport" [objects]="selection.selected"></app-export-table>
+                  <app-print-table *ngIf="showPrint" [objects]="selection.selected"></app-print-table>
+                </span> -->
+      </app-section-container>
+      <ng-container *ngTemplateOutlet="tableHeaderOptions">
+      </ng-container>
+
+      <app-section-container *ngIf="showSort" [title]="'Sort'">
+        <div class="flex  gap-2">
+          <mat-form-field [appearance]="'outline'" subscriptSizing="dynamic" (ngModelChange)="sortChanged()">
+            <mat-label>Sort By: </mat-label>
+            <mat-select [(ngModel)]="sortBy">
+              <mat-option *ngFor="let column of sortColumns" [value]="column">{{getColumnLabel(column)}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="flex  gap-1">
+            <mat-radio-group aria-labelledby="example-radio-group-label" class="example-radio-group"
+              [(ngModel)]="sortOrder" (ngModelChange)="sortChanged()">
+
+              <mat-radio-button name="sortOrder" value="asc">Ascending</mat-radio-button>
+              <mat-radio-button name="sortOrder" value="desc">Descending</mat-radio-button>
+
+            </mat-radio-group>
+
+          </div>
+          <!-- <button mat-flat-button color="accent"
+            >Apply</button> -->
+        </div>
+
+      </app-section-container>
+
+
+    </div>
+    <div class="flex flex-row gap-2 align-middle items-center flex-wrap">
+      <app-pagination *ngIf="showPagination" [current_page]="currentPage" [total]="totalRows" [limit]="limit"
+        (pageChanged)="setPage($event)" (limitChanged)="setLimit($event)"></app-pagination>
+
+      <!-- <button *ngIf="showSort" mat-flat-button color="accent" [disabled]="filters.length < 1"
+        (click)="showSortDialog()"><mat-icon>sort_by_alpha</mat-icon> Sort</button> -->
+
+
+      <!-- <span *ngIf="showSort" class="flex flex-row gap-1 items-center flex-wrap">
+        <mat-form-field [appearance]="'fill'">
+          <mat-label>Sort By: </mat-label>
+          <mat-select [(ngModel)]="sortBy" (selectionChange)="getData()">
+            <mat-option *ngFor="let column of sortColumns" [value]="column">{{getColumnLabel(column)}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <label>Ascending <input type="radio" name="sortOrder" [(ngModel)]="sortOrder" value="asc"> </label>
+        <label>Descending <input type="radio" name="sortOrder" [(ngModel)]="sortOrder" value="desc"> </label>
+
+
+      </span> -->
+    </div>
+  </div>
+
+
+
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div class="text-muted" *ngIf="showInfo">
+    <mat-icon>info</mat-icon> To export the data, e.g. to excel format, select the rows you would like to export. Use
+    the top checkbox to select
+    all
+  </div>
+
+  @if (templateToUse) {
+  <div class="{{customTemplateContainerClass}}">
+    @for (item of dataSource.data; track item.uuid || $index) {
+    <ng-container [ngTemplateOutlet]="templateToUse" [ngTemplateOutletContext]="{ $implicit: item, index: $index }">
+    </ng-container>
+    }
+  </div>
+  }
+  @else if (!(isMobile$ | async)) {
+  <app-table #table [dataSource]="dataSource" [displayedColumns]="displayedColumns" [columnLabels]="columnLabels"
+    [rowSelection]="rowSelection" [specialClasses]="specialClasses" [customClassRules]="customClassRules"
+    [offset]="offset" [customClassLegends]="customClassLegends"></app-table>
+
+  }
+  @else{
+  <app-list #list [dataSource]="dataSource" [displayedColumns]="displayedColumns" [columnLabels]="columnLabels"
+    [rowSelection]="rowSelection" [specialClasses]="specialClasses" [customClassRules]="customClassRules"
+    [offset]="offset" [customClassLegends]="customClassLegends" [titleField]="listTitleField()"
+    [showActions]="showActions"></app-list>
+  }
+  @if(dataSource.data.length < 1 && !loading){ <app-alert [type]="'info'"> {{emptyMessage}}</app-alert>
+    }
+
+
+
+
+
+</div>
+
+<ng-template #linkTemplate>
+
+</ng-template>
+
+
+<ng-template #sortDialog>
+  <h2 mat-dialog-title>Sort Options</h2>
+  <mat-dialog-content>
+
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+
+  </mat-dialog-actions>
+</ng-template>

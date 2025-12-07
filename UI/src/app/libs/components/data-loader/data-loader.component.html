@@ -1,0 +1,46 @@
+<!-- Loading State -->
+@if (loading() && showInlineLoader()) {
+  @if (loadingTemplate(); as template) {
+    <ng-container [ngTemplateOutlet]="template"></ng-container>
+  } @else {
+    <div class="data-loader-state">
+      <app-loading></app-loading>
+    </div>
+  }
+}
+
+<!-- Error State -->
+@if (error() && !loading()) {
+  @if (errorTemplate(); as template) {
+    <ng-container [ngTemplateOutlet]="template" [ngTemplateOutletContext]="{ $implicit: errorDetails(), retry: retry.bind(this) }"></ng-container>
+  } @else {
+    <div class="data-loader-state data-loader-error">
+      <app-error-message>{{errorMessage()}}</app-error-message>
+      @if (retryable()) {
+        <button mat-raised-button color="primary" (click)="retry()">
+          <mat-icon>refresh</mat-icon>
+          Retry
+        </button>
+      }
+    </div>
+  }
+}
+
+<!-- Empty State -->
+@if (isEmpty() && !loading() && !error()) {
+  @if (emptyTemplate(); as template) {
+    <ng-container [ngTemplateOutlet]="template"></ng-container>
+  } @else {
+    <div class="data-loader-state data-loader-empty">
+      <mat-icon class="empty-icon">inbox</mat-icon>
+      <p>{{ emptyStateMessage() }}</p>
+    </div>
+  }
+}
+
+<!-- Content State -->
+@if (data() && !loading() && !error() && !isEmpty()) {
+  @if (contentTemplate(); as template) {
+    <ng-container [ngTemplateOutlet]="template" [ngTemplateOutletContext]="{ $implicit: data(), reload: reload.bind(this) }"></ng-container>
+  }
+}

@@ -1,0 +1,12 @@
+<div class="users-list-container p-4">
+    <app-load-data-list url="api/users" [displayedColumns]="displayedColumns" [columnLabels]="columnLabels"
+        [specialClasses]="specialClasses" [customClassRules]="customClassRules" [getActions]="getActions"
+        [filters]="filters" tableTitle="Users" [listTitleField]="'name'" [emptyMessage]="'No users found'">
+        <ng-template #header>
+            <button mat-raised-button color="primary" (click)="createUser()">
+                <mat-icon>add</mat-icon>
+                Add User
+            </button>
+        </ng-template>
+    </app-load-data-list>
+</div>

@@ -11,6 +11,52 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/login",
+     *     tags={"Authentication"},
+     *     summary="Login user",
+     *     description="Authenticate user and receive access token",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", format="email", example="admin@druglane.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful login",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="System Administrator"),
+     *                 @OA\Property(property="email", type="string", example="admin@druglane.com"),
+     *                 @OA\Property(property="role", type="object"),
+     *                 @OA\Property(property="company", type="object", nullable=true)
+     *             ),
+     *             @OA\Property(property="token", type="string", example="1|xxxxxxxxxxxxxxxxxxxxxxxx"),
+     *             @OA\Property(property="role", type="string", example="admin"),
+     *             @OA\Property(property="company", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid credentials",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Invalid credentials. Please try again.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Account deactivated or license expired",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Your account has been deactivated. Please contact support.")
+     *         )
+     *     )
+     * )
+     */
     public function login(LoginRequest $request){
         $credentials = $request->validated();
 
@@ -57,6 +103,30 @@ class AuthController extends Controller
         ], 200);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/signup",
+     *     tags={"Authentication"},
+     *     summary="Register new user (Currently Disabled)",
+     *     description="Public registration is disabled. Users must be created by administrators.",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Registration disabled",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Public registration is disabled. Please contact an administrator to create your account.")
+     *         )
+     *     )
+     * )
+     */
     public function signup(SignupRequest $request){
         $data = $request->validated();
 
@@ -87,6 +157,71 @@ class AuthController extends Controller
         */
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/profile",
+     *     tags={"Authentication"},
+     *     summary="Get current user profile",
+     *     description="Get authenticated user's profile information",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User profile retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="System Administrator"),
+     *                 @OA\Property(property="email", type="string", example="admin@druglane.com"),
+     *                 @OA\Property(property="role", type="object"),
+     *                 @OA\Property(property="company", type="object", nullable=true)
+     *             ),
+     *             @OA\Property(property="role", type="string", example="admin"),
+     *             @OA\Property(property="company", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unauthenticated.")
+     *         )
+     *     )
+     * )
+     */
+    public function profile(Request $request){
+        /** @var User $user */
+        $user = $request->user();
+
+        // Load relationships
+        $user->load(['role', 'company']);
+
+        return response([
+            'user' => $user,
+            'role' => $user->role->name,
+            'company' => $user->company
+        ], 200);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/logout",
+     *     tags={"Authentication"},
+     *     summary="Logout user",
+     *     description="Invalidate current access token",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=204,
+     *         description="Successfully logged out"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unauthenticated.")
+     *         )
+     *     )
+     * )
+     */
     public function logout(Request $request){
         /** @var User $user */
         $user = $request->user();

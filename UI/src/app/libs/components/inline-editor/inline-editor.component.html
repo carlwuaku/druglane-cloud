@@ -1,0 +1,11 @@
+@if (!editMode) {
+  <span>{{text}} <button mat-icon-button (click)="startEdit()"><mat-icon>edit</mat-icon> </button>
+</span>
+}
+@if (editMode) {
+  <span>
+    <input type="text" [(ngModel)]="newText"> <button mat-icon-button (click)="cancel()"><mat-icon>cancel</mat-icon>
+  </button>
+  <button mat-icon-button (click)="save()"><mat-icon>save</mat-icon> </button>
+</span>
+}

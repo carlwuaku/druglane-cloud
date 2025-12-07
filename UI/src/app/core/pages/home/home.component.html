@@ -1,0 +1,51 @@
+<div class="flex flex-col gap-2">
+    <section class="homeBanner rounded-lg">
+        <div class=" text-white">
+            @if (user(); as currentUser) {
+            <div class="flex gap-2 items-start flex-wrap">
+                <div class="flex-auto">
+                    <h3 class="margins">
+                        {{currentUser.displayName}}
+                    </h3>
+                    <div class="flex gap-1  flex-wrap">
+                        @for (subtitle of subtitles(); track $index) {
+                        <span class="bg-white p-1.5 text-black rounded-md ">{{subtitle.label}}:
+                            {{subtitle.template}}</span>
+                        }
+                        @if(currentUser.company){
+                        <span class="bg-white p-1.5 text-black rounded-md ">
+                            Company: {{currentUser.company.name}}
+                        </span>
+                        }
+                        <span class="bg-white p-1.5 text-black rounded-md ">
+                            Role: {{currentUser.role.display_name}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+
+            }
+
+        </div>
+    </section>
+    @for (alert of alerts(); track $index) {
+    <app-alert [type]="alert.type">
+        <div [innerHTML]="alert.message"></div>
+    </app-alert>
+    }
+    <div
+        class="grid grid-flow-row auto-rows-max grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-3 flex-auto">
+        @for (item of menuItems(); track $index) {
+        <app-dashboard-tile [title]="item.title" [description]="item.description" [url]="item.url"
+            [urlParams]="item.urlParams" [image]="item.image" [actions]="item.actions" [alerts]="item.alerts"
+            [dataPoints]="item.dataPoints"></app-dashboard-tile>
+
+        }
+    </div>
+    <!-- footer -->
+    <div class="flex flex-col gap-1 footer">
+
+
+    </div>
+</div>

@@ -1,0 +1,117 @@
+<div class="activation-container">
+  <div class="flex flex-col justify-center gap-2 w-[80%] max-w-[400px]">
+    <h1>System Activation</h1>
+    @if (!activationSuccess()) {
+    <!-- Activation Form -->
+    <div class="activation-content">
+      <p class="subtitle">Enter your 20-digit activation key to activate this system</p>
+
+      <form [formGroup]="activationForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Activation Key</mat-label>
+          <input matInput type="text" formControlName="activationKey" placeholder="Enter 20-digit activation key"
+            maxlength="20" [disabled]="isLoading()" />
+          <mat-icon matPrefix>vpn_key</mat-icon>
+          <mat-hint>Enter your 20-digit activation key</mat-hint>
+          @if (activationKey?.hasError('required')) {
+          <mat-error>Activation key is required</mat-error>
+          }
+          @if (activationKey?.hasError('minlength') || activationKey?.hasError('maxlength')) {
+          <mat-error>Activation key must be exactly 20 digits</mat-error>
+          }
+          @if (activationKey?.hasError('pattern')) {
+          <mat-error>Activation key must contain only digits</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-actions">
+          @if (isLoading()) {
+          <div class="loading-state">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p>Activating system...</p>
+          </div>
+          } @else {
+          <button matButton="filled" color="primary" type="submit" [disabled]="activationForm.invalid"
+            class="activate-btn">
+            <mat-icon>check_circle</mat-icon>
+            Activate System
+          </button>
+          }
+        </div>
+      </form>
+
+      <div class="help-section">
+        <p class="help-text">
+          <mat-icon>info</mat-icon>
+          Don't have an activation key? Contact support to obtain one.
+        </p>
+      </div>
+    </div>
+    } @else {
+    <!-- Success Message -->
+    <div class="success-content">
+      <div class="success-icon">
+        <mat-icon color="primary">check_circle</mat-icon>
+      </div>
+      <h2>Activation Successful!</h2>
+      <p class="success-message">Your system has been successfully activated.</p>
+
+      @if (facilityData()) {
+      <div class="facility-details">
+        <h3>Facility Information</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Facility Name:</label>
+            <span>{{ facilityData().name }}</span>
+          </div>
+          <div class="detail-item">
+            <label>License Number:</label>
+            <span>{{ facilityData().licenseNumber }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Contact Person:</label>
+            <span>{{ facilityData().contactPerson }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Phone:</label>
+            <span>{{ facilityData().phone }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Email:</label>
+            <span>{{ facilityData().email }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Location:</label>
+            <span>{{ facilityData().location }}</span>
+          </div>
+          @if (facilityData().expiresOn) {
+          <div class="detail-item">
+            <label>Expires On:</label>
+            <span>{{ facilityData().expiresOn | date: 'medium' }}</span>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <p class="redirect-message">
+        <mat-spinner diameter="20"></mat-spinner>
+        Redirecting to login page...
+      </p>
+    </div>
+    }
+  </div>
+  <mat-card class="activation-card">
+    <mat-card-header>
+      <div class="card-header">
+        <div class="logo-section">
+
+        </div>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+
+    </mat-card-content>
+  </mat-card>
+</div>

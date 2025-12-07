@@ -20,6 +20,9 @@ class Company extends Model
     protected $fillable = [
         'name',
         'license_key',
+        'is_activated',
+        'activated_at',
+        'activated_by_machine_id',
         'license_status',
         'license_issued_at',
         'license_expires_at',
@@ -37,6 +40,8 @@ class Company extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'is_activated' => 'boolean',
+        'activated_at' => 'datetime',
         'license_issued_at' => 'datetime',
         'license_expires_at' => 'datetime',
         'created_at' => 'datetime',
@@ -61,6 +66,34 @@ class Company extends Model
     }
 
     /**
+     * Get the database uploads for the company.
+     */
+    public function databaseUploads(): HasMany
+    {
+        return $this->hasMany(CompanyDatabaseUpload::class);
+    }
+
+    /**
+     * Get the latest active database upload.
+     */
+    public function getLatestDatabaseUpload(): ?CompanyDatabaseUpload
+    {
+        return $this->databaseUploads()
+            ->where('is_active', true)
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * Get the full path to the latest SQLite database file.
+     */
+    public function getLatestSqlitePath(): ?string
+    {
+        $upload = $this->getLatestDatabaseUpload();
+        return $upload ? $upload->getFullSqlitePath() : null;
+    }
+
+    /**
      * Check if the license is active.
      */
     public function isLicenseActive(): bool
@@ -82,6 +115,35 @@ class Company extends Model
     public function isLicenseExpired(): bool
     {
         return $this->license_expires_at && $this->license_expires_at->isPast();
+    }
+
+    /**
+     * Activate the license with machine ID.
+     */
+    public function activate(string $machineId): bool
+    {
+        if ($this->is_activated) {
+            return false; // Already activated
+        }
+
+        $this->update([
+            'is_activated' => true,
+            'activated_at' => now(),
+            'activated_by_machine_id' => $machineId,
+            'license_status' => 'active',
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Check if license can be activated.
+     */
+    public function canActivate(): bool
+    {
+        return !$this->is_activated
+            && $this->license_status !== 'suspended'
+            && !$this->isLicenseExpired();
     }
 
     /**

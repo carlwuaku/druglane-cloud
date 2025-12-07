@@ -1,0 +1,193 @@
+@if (url()) {
+<a [routerLink]="url()" [queryParams]="urlParams()" class="tile-link">
+    <mat-card class="h-full dashboard-tile">
+        <!-- Card Image Header -->
+        <div class="tile-image-container">
+            @if (image(); as img) {
+            @if (isExternalUrl(img)) {
+            <!-- External URL - use regular img tag -->
+            <img mat-card-image [src]="img" [alt]="title()" class="tile-image">
+            } @else {
+            <!-- Internal filename - use secure-image component -->
+            <app-secure-image [filename]="img" [alt]="title()" cssClass="tile-image mat-mdc-card-image">
+            </app-secure-image>
+            }
+            } @else {
+            <!-- Default gradient background if no image -->
+            <div class="tile-image default-image"></div>
+            }
+        </div>
+
+        <!-- Card Header with Title -->
+        <mat-card-header>
+            <mat-card-title>{{title()}}</mat-card-title>
+            @if (description()) {
+            <mat-card-subtitle>{{description()}}</mat-card-subtitle>
+            }
+        </mat-card-header>
+
+        <!-- Content Section -->
+        <mat-card-content class="tile-content">
+            <div class="flex flex-col gap-2">
+                @for (dataPoint of dataPoints(); track dataPoint) {
+                <div class="data-point data-point-{{dataPoint.type}}">
+                    <div class="data-count">
+                        <app-api-count [url]="dataPoint.apiUrl" [property]="dataPoint.apiProperty"></app-api-count>
+                    </div>
+                    <span class="data-message">{{dataPoint.message}}</span>
+                </div>
+                }
+                @for (alert of alerts(); track $index) {
+                <div class="alert-badge alert-{{alert.type}}">
+                    <span>{{alert.message}}</span>
+                </div>
+                }
+            </div>
+        </mat-card-content>
+
+        <!-- Actions Footer -->
+        <mat-card-actions>
+            @if (actions() && actions()!.length > 0) {
+            <!-- Single Action Button -->
+            @if (actions()!.length === 1) {
+            @if (actions()![0].type === 'button' && actions()![0].onClick) {
+            <button mat-flat-button color="primary" class="action-button w-full"
+                (click)="onActionClick($event, actions()![0])">
+                @if (actions()![0].icon) {<mat-icon>{{actions()![0].icon}}</mat-icon>}
+                {{actions()![0].label}}
+            </button>
+            }
+            @else if (actions()![0].type === 'link') {
+            <a mat-flat-button color="primary" class="action-button w-full" [routerLink]="actions()![0].url"
+                [queryParams]="actions()![0].urlParams" (click)="$event.stopPropagation()">
+                @if (actions()![0].icon) {<mat-icon>{{actions()![0].icon}}</mat-icon>}
+                {{actions()![0].label}}
+            </a>
+            }
+            }
+
+            <!-- Multiple Actions - Dropdown Menu -->
+            @else {
+            <button mat-flat-button color="primary" class="action-button w-full" [matMenuTriggerFor]="actionsMenu"
+                (click)="$event.preventDefault(); $event.stopPropagation()">
+                <mat-icon>menu</mat-icon>
+                Actions
+                <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+
+            <mat-menu #actionsMenu="matMenu">
+                @for (action of actions(); track $index) {
+                @if (action.type === 'button') {
+                <button mat-menu-item (click)="action.onClick?.()">
+                    @if (action.icon) {<mat-icon>{{action.icon}}</mat-icon>}
+                    <span>{{action.label}}</span>
+                </button>
+                }
+                @else if (action.type === 'link') {
+                <a mat-menu-item [routerLink]="action.url" [queryParams]="action.urlParams">
+                    @if (action.icon) {<mat-icon>{{action.icon}}</mat-icon>}
+                    <span>{{action.label}}</span>
+                </a>
+                }
+                }
+            </mat-menu>
+            }
+            }
+        </mat-card-actions>
+    </mat-card>
+</a>
+} @else {
+<mat-card class="h-full dashboard-tile">
+    <!-- Card Image Header -->
+    <div class="tile-image-container">
+        @if (image(); as img) {
+        @if (isExternalUrl(img)) {
+        <!-- External URL - use regular img tag -->
+        <img mat-card-image [src]="img" [alt]="title()" class="tile-image">
+        } @else {
+        <!-- Internal filename - use secure-image component -->
+        <app-secure-image [filename]="img" [alt]="title()" cssClass="tile-image mat-mdc-card-image">
+        </app-secure-image>
+        }
+        } @else {
+        <!-- Default gradient background if no image -->
+        <div class="tile-image default-image"></div>
+        }
+    </div>
+
+    <!-- Card Header with Title -->
+    <mat-card-header>
+        <mat-card-title>{{title()}}</mat-card-title>
+        @if (description()) {
+        <mat-card-subtitle>{{description()}}</mat-card-subtitle>
+        }
+    </mat-card-header>
+
+    <!-- Content Section -->
+    <mat-card-content class="tile-content">
+        <div class="flex flex-col gap-2">
+            @for (dataPoint of dataPoints(); track dataPoint) {
+            <div class="data-point data-point-{{dataPoint.type}}">
+                <div class="data-count">
+                    <app-api-count [url]="dataPoint.apiUrl" [property]="dataPoint.apiProperty"></app-api-count>
+                </div>
+                <span class="data-message">{{dataPoint.message}}</span>
+            </div>
+            }
+            @for (alert of alerts(); track $index) {
+            <div class="alert-badge alert-{{alert.type}}">
+                <span>{{alert.message}}</span>
+            </div>
+            }
+        </div>
+    </mat-card-content>
+
+    <!-- Actions Footer -->
+    <mat-card-actions>
+        @if (actions() && actions()!.length > 0) {
+        <!-- Single Action Button -->
+        @if (actions()!.length === 1) {
+        @if (actions()![0].type === 'button') {
+        <button mat-flat-button color="primary" class="action-button w-full" (click)="actions()![0].onClick?.()">
+            @if (actions()![0].icon) {<mat-icon>{{actions()![0].icon}}</mat-icon>}
+            {{actions()![0].label}}
+        </button>
+        }
+        @else if (actions()![0].type === 'link') {
+        <a mat-flat-button color="primary" class="action-button w-full" [routerLink]="actions()![0].url"
+            [queryParams]="actions()![0].urlParams">
+            @if (actions()![0].icon) {<mat-icon>{{actions()![0].icon}}</mat-icon>}
+            {{actions()![0].label}}
+        </a>
+        }
+        }
+
+        <!-- Multiple Actions - Dropdown Menu -->
+        @else {
+        <button mat-flat-button color="primary" class="action-button w-full" [matMenuTriggerFor]="actionsMenu">
+            <mat-icon>menu</mat-icon>
+            Actions
+            <mat-icon>arrow_drop_down</mat-icon>
+        </button>
+
+        <mat-menu #actionsMenu="matMenu">
+            @for (action of actions(); track $index) {
+            @if (action.type === 'button' && action.onClick) {
+            <button mat-menu-item (click)="action.onClick()">
+                @if (action.icon) {<mat-icon>{{action.icon}}</mat-icon>}
+                <span>{{action.label}}</span>
+            </button>
+            }
+            @else if (action.type === 'link') {
+            <a mat-menu-item [routerLink]="action.url" [queryParams]="action.urlParams">
+                @if (action.icon) {<mat-icon>{{action.icon}}</mat-icon>}
+                <span>{{action.label}}</span>
+            </a>
+            }
+            }
+        </mat-menu>
+        }
+        }
+    </mat-card-actions>
+</mat-card>
+}

@@ -1,0 +1,158 @@
+<div class="login-container">
+    <div class="login-card-wrapper">
+
+
+        <!-- Login Card -->
+        <mat-card class="login-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex gap-1 items-center">
+                            <img [src]="logo" alt="logo" class="logo">
+                            <h3 class="app-name">{{appName}}</h3>
+                        </div>
+
+                    </div>
+
+
+                </mat-card-title>
+                <mat-card-subtitle>
+                    @if (twoFactorAuthMode) {
+                    <span>Enter your authenticator code</span>
+                    }
+                    @if (!twoFactorAuthMode) {
+                    <span>Please sign in to your account</span>
+
+                    }
+                </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content class="flex flex-col gap-2">
+                <!-- Error Messages -->
+                @if (error) {
+                <div class="alert alert-error">
+                    <mat-icon>error</mat-icon>
+                    <span>{{error_message}}</span>
+                </div>
+                }
+
+                @if (flash_message) {
+                <div class="alert alert-warning">
+                    <mat-icon>warning</mat-icon>
+                    <span>{{flash_message}}</span>
+                </div>
+                }
+
+                <!-- Regular Login Form -->
+                @if (!twoFactorAuthMode) {
+                <form (ngSubmit)="login()" class="login-form">
+                    <div class="form-container">
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Username</mat-label>
+                            <input matInput [(ngModel)]="username" name="username" required autocomplete="username"
+                                placeholder="Enter your username" (input)="onUsernameChange()"
+                                [disabled]="hasExceededAttempts">
+                            <mat-icon matPrefix>person</mat-icon>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Password</mat-label>
+                            <input matInput [type]="hidePassword ? 'password' : 'text'" [(ngModel)]="password"
+                                name="password" required autocomplete="current-password"
+                                placeholder="Enter your password" (input)="onPasswordChange()"
+                                [disabled]="hasExceededAttempts">
+                            <mat-icon matPrefix>lock</mat-icon>
+                            <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword"
+                                [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword" tabindex="-1">
+                                <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                            </button>
+                        </mat-form-field>
+                        <!-- reCAPTCHA -->
+                        <!-- @if (recaptchaSiteKey) {
+            <div class="recaptcha-container self-start">
+              <re-captcha (errored)="recaptchaError()" (resolved)="resolved($event)" type="image"
+                [siteKey]="recaptchaSiteKey">
+              </re-captcha>
+            </div>
+            } -->
+                        <!-- Submit Button -->
+                        <div class="button-container">
+                            <button matButton="filled" color="primary" type="submit"
+                                [disabled]="!isLoginFormValid || loading || hasExceededAttempts" class="login-button">
+                                @if (loading) {
+                                <app-loading diameter="20"></app-loading>
+                                }
+                                @if (!loading && loginButtonIcon) {
+                                <mat-icon>{{loginButtonIcon}}</mat-icon>
+                                }
+                                <span>{{loginButtonText}}</span>
+                            </button>
+                            @if (hasExceededAttempts) {
+                            <div class="attempt-warning">
+                                <mat-icon>warning</mat-icon>
+                                <span>Too many failed attempts. Please wait or use forgot password.</span>
+                            </div>
+                            }
+                        </div>
+                        <!-- Forgot Password Link -->
+                        <div class="forgot-password-link">
+                            <a matButton="outlined" routerLink="/forgot-password" color="primary">
+                                <mat-icon>help</mat-icon>
+                                Forgot Password?
+                            </a>
+                        </div>
+                    </div>
+                </form>
+                }
+
+                <!-- Two Factor Authentication Form -->
+                @if (twoFactorAuthMode) {
+                <form (ngSubmit)="submit2FA()" class="login-form">
+                    <div class="form-container">
+                        <div class="two-factor-info">
+                            <mat-icon class="info-icon">smartphone</mat-icon>
+                            <p>Open your authenticator app and enter the 6-digit code</p>
+                        </div>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Authenticator Code</mat-label>
+                            <input matInput [(ngModel)]="twoFactorCode" name="twoFactorCode" required maxlength="6"
+                                placeholder="000000" class="two-factor-input" autocomplete="one-time-code"
+                                (input)="onTwoFactorInput($event)">
+                            <mat-icon matPrefix>security</mat-icon>
+                        </mat-form-field>
+                        <div class="button-container">
+                            <button mat-raised-button color="primary" type="submit"
+                                [disabled]="!is2FAFormValid || loading" class="login-button">
+                                @if (loading) {
+                                <app-loading diameter="20"></app-loading>
+                                }
+                                @if (!loading && loginButtonIcon) {
+                                <mat-icon>{{loginButtonIcon}}</mat-icon>
+                                }
+                                <span>{{loginButtonText}}</span>
+                            </button>
+                        </div>
+                        <div class="back-to-login">
+                            <button mat-button type="button" (click)="goBackToLogin()" color="accent">
+                                <mat-icon>arrow_back</mat-icon>
+                                Back to Login
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                }
+            </mat-card-content>
+
+            <mat-card-footer>
+                <div class="footer-content">
+                    <div class="copyright">
+                        &copy; {{appName}} {{currentYear}}. All Rights Reserved.
+                    </div>
+                    <div class="disclaimer">
+                        Unauthorized access is prohibited. All data is protected by the Data Protection Law.
+                    </div>
+                </div>
+            </mat-card-footer>
+        </mat-card>
+    </div>
+</div>

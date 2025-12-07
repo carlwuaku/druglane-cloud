@@ -1,0 +1,40 @@
+@if (isLoggedIn) {
+
+<div class="flex flex-col">
+    <mat-toolbar color="primary" class=" z-10">
+        <div class="bg-white rounded-full"><a routerLink="/"><img src="{{logo}}" [style.height.px]="50" alt="logo"></a>
+        </div>
+
+        <h1 class="app-name"><a class="link" routerLink="/">{{appName}}</a></h1>
+        <span class="spacer"></span>
+        <button mat-button [matMenuTriggerFor]="menu"><mat-icon>person</mat-icon> <span
+                class="hidden sm:inline">{{user()?.name}}</span>
+            <mat-icon>keyboard_arrow_down</mat-icon> </button>
+        <mat-menu #menu="matMenu">
+            <button mat-menu-item>Change Password</button>
+            <button mat-menu-item>View Profile</button>
+        </mat-menu>
+        <button mat-button (click)="logout()"><mat-icon>exit_to_app</mat-icon><span class="hidden sm:inline">
+                Logout</span></button>
+    </mat-toolbar>
+    <div class="container ml-auto mr-auto px-4 flex flex-col flex-auto  gap-1 border main-container">
+        <div class="flex gap-1 items-center">
+            <button mat-icon-button color="primary" (click)="goBack()" matTooltip="Back to previous page">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            {{title}}
+        </div>
+        <router-outlet />
+    </div>
+</div>
+
+}
+@else{
+<router-outlet />
+}
+
+<!-- Regular notifications -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Loading indicator -->
+<p-toast key="loading" position="top-right" [preventOpenDuplicates]="true"></p-toast>

@@ -1,0 +1,27 @@
+<app-load-data-list
+  url="api/companies"
+  [displayedColumns]="displayedColumns"
+  [columnLabels]="columnLabels"
+  [getActions]="getActions"
+  [specialClasses]="specialClasses"
+  [customClassRules]="customClassRules"
+  [filters]="filters"
+  [listTitleField]="'name'"
+  tableTitle="Companies"
+  emptyMessage="No companies found"
+  hint="Manage all companies and their licenses"
+  [showSearch]="true"
+  [showExport]="true"
+  [showPagination]="true"
+  [showFilterButton]="true"
+  [showTableTitle]="true"
+  [showDeleted]="false"
+  [limit]="15">
+
+  <ng-template #header>
+    <button mat-raised-button color="primary" (click)="createCompany()">
+      <mat-icon>add</mat-icon>
+      Add Company
+    </button>
+  </ng-template>
+</app-load-data-list>

@@ -1,0 +1,23 @@
+<div class="flex align-middle items-center gap-2">
+  <b *ngIf="total > 0">{{((current_page - 1) * limit) + 1}} -
+    <span *ngIf="(((current_page - 1) * limit) + limit) < total; else show_total ">
+      {{((current_page - 1) * limit) + limit}}/{{total}}</span>
+    <ng-template #show_total>{{total}}</ng-template>
+  </b> Number of rows:
+  <select class="border" name="limit" [(ngModel)]="limit" (change)="changeLimit()">
+    <option value="{{l}}" *ngFor="let l of limits">{{l}}</option>
+  </select>
+
+  Page:
+  <button mat-stroked-button color="warn" *ngIf="current_page > 1"
+    (click)="firstPage()"><mat-icon>keyboard_double_arrow_left</mat-icon> Page 1 </button>
+  <button mat-stroked-button color="primary" *ngIf="current_page > 1"
+    (click)="previousPage()"><mat-icon>keyboard_arrow_left</mat-icon> Previous Page </button>
+  <select class="border" name="current_page" [(ngModel)]="current_page" (change)="changePage()">
+    <option value="{{dp}}" *ngFor="let dp of dropdown_pages">{{dp}}</option>
+  </select>
+  <button mat-stroked-button color="primary" *ngIf="current_page < last_page" (click)="nextPage()"> Next Page
+    <mat-icon>keyboard_arrow_right</mat-icon></button>
+  <button mat-stroked-button color="warn" *ngIf="current_page < last_page" (click)="lastPage()"> Last Page
+    <mat-icon>keyboard_double_arrow_right</mat-icon></button>
+</div>

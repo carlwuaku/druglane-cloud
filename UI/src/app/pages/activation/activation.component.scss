@@ -1,0 +1,152 @@
+.activation-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.activation-card {
+  max-width: 500px;
+  width: 100%;
+  padding: 20px;
+
+  mat-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 30px;
+
+    .header-icon {
+      margin-bottom: 20px;
+      color: #667eea;
+
+      svg {
+        width: 64px;
+        height: 64px;
+      }
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    mat-card-subtitle {
+      margin-top: 10px;
+      color: #666;
+      font-size: 14px;
+    }
+  }
+}
+
+.activation-form {
+  margin-top: 20px;
+
+  .full-width {
+    width: 100%;
+  }
+
+  .submit-button {
+    width: 100%;
+    height: 48px;
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: 500;
+    position: relative;
+
+    .button-spinner {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+}
+
+.success-message {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: #155724;
+
+  svg {
+    flex-shrink: 0;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+
+  div {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 4px 0;
+      font-size: 14px;
+
+      &.redirect-text {
+        margin-top: 12px;
+        font-size: 12px;
+        color: #0c5724;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: #721c24;
+
+  svg {
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.help-text {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+
+    a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

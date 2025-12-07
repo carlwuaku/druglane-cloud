@@ -19,9 +19,21 @@ use Illuminate\Support\Facades\Route;
 Route::post('/signup', [\App\Http\Controllers\Api\AuthController::class,'signup']);
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class,'login']);
 
+// License activation routes (for desktop app - no authentication required)
+Route::prefix('license')->group(function () {
+    Route::post('/validate', [\App\Http\Controllers\Api\LicenseController::class, 'validateLicense']);
+    Route::post('/activate', [\App\Http\Controllers\Api\LicenseController::class, 'activate']);
+    Route::post('/check-activation', [\App\Http\Controllers\Api\LicenseController::class, 'checkActivation']);
+});
+
+// Database upload routes (for desktop app - no authentication required)
+Route::post('/receive-file', [\App\Http\Controllers\Api\DatabaseUploadController::class, 'receive_file']);
+Route::post('/get-latest-database', [\App\Http\Controllers\Api\DatabaseUploadController::class, 'getLatest']);
+
 // Protected routes - require authentication, active account, and valid license
 Route::middleware(['auth:sanctum', 'active', 'license.active'])->group(function () {
     Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class,'logout']);
+    Route::get('/profile', [\App\Http\Controllers\Api\AuthController::class,'profile']);
 
     Route::get('/user', function (Request $request) {
         $user = $request->user();

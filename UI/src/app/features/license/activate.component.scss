@@ -1,0 +1,204 @@
+.activation-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: whitesmoke;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.activation-card {
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+  .card-header {
+    padding: 2rem 0 1rem;
+    text-align: center;
+
+    .logo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+
+      .shield-icon {
+        font-size: 3rem;
+        width: 3rem;
+        height: 3rem;
+        color: #667eea;
+      }
+
+      h1 {
+        margin: 0;
+        color: #333;
+        font-size: 1.8rem;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+.activation-content {
+  padding: 1rem 0;
+
+  .subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+  }
+
+  form {
+    .full-width {
+      width: 100%;
+    }
+
+    .form-actions {
+      margin-top: 1.5rem;
+      text-align: center;
+
+      .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+
+        p {
+          margin: 0;
+          color: #666;
+          font-size: 0.95rem;
+        }
+      }
+
+      .activate-btn {
+        width: 100%;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+
+        mat-icon {
+          margin-right: 0.5rem;
+        }
+      }
+    }
+  }
+
+  .help-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+
+    .help-text {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: #666;
+      font-size: 0.9rem;
+      margin: 0;
+
+      mat-icon {
+        font-size: 1.2rem;
+        width: 1.2rem;
+        height: 1.2rem;
+        color: #667eea;
+      }
+    }
+  }
+}
+
+.success-content {
+  padding: 2rem 1rem;
+  text-align: center;
+
+  .success-icon {
+    margin-bottom: 1.5rem;
+
+    mat-icon {
+      font-size: 4rem;
+      width: 4rem;
+      height: 4rem;
+      color: #667eea;
+    }
+  }
+
+  h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+
+  .success-message {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+
+  .facility-details {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: left;
+
+    h3 {
+      color: #333;
+      margin: 0 0 1rem 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+
+      @media (min-width: 600px) {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        label {
+          font-weight: 500;
+          color: #666;
+          font-size: 0.85rem;
+        }
+
+        span {
+          color: #333;
+          font-size: 0.95rem;
+        }
+      }
+    }
+  }
+
+  .redirect-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: #666;
+    font-size: 0.95rem;
+    margin: 1.5rem 0;
+  }
+}
+
+// Material Form Field Customization
+::ng-deep {
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      .mat-mdc-form-field-flex {
+        .mat-mdc-form-field-icon-prefix {
+          padding-right: 0.5rem;
+        }
+      }
+    }
+  }
+}
