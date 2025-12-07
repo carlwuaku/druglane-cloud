@@ -30,6 +30,9 @@ class StoreUserRequest extends FormRequest
                 'confirmed',
                 Password::min(8)->letters()->symbols(),
             ],
+            'role_id' => 'required|integer|exists:roles,id',
+            'company_id' => 'nullable|integer|exists:companies,id',
+            'is_active' => 'nullable|boolean',
         ];
     }
 }

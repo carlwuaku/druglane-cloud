@@ -5,7 +5,7 @@
             <div class="flex gap-2 items-start flex-wrap">
                 <div class="flex-auto">
                     <h3 class="margins">
-                        {{currentUser.displayName}}
+                        Welcome, {{currentUser.displayName}}!
                     </h3>
                     <div class="flex gap-1  flex-wrap">
                         @for (subtitle of subtitles(); track $index) {
@@ -29,23 +29,19 @@
 
         </div>
     </section>
+
     @for (alert of alerts(); track $index) {
     <app-alert [type]="alert.type">
         <div [innerHTML]="alert.message"></div>
     </app-alert>
     }
-    <div
-        class="grid grid-flow-row auto-rows-max grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-3 flex-auto">
-        @for (item of menuItems(); track $index) {
-        <app-dashboard-tile [title]="item.title" [description]="item.description" [url]="item.url"
-            [urlParams]="item.urlParams" [image]="item.image" [actions]="item.actions" [alerts]="item.alerts"
-            [dataPoints]="item.dataPoints"></app-dashboard-tile>
 
-        }
-    </div>
-    <!-- footer -->
-    <div class="flex flex-col gap-1 footer">
-
-
+    <!-- Dashboard Content - Menu items are now in the sidebar -->
+    <div class="dashboard-content">
+        <h2 class="dashboard-title">Dashboard Overview</h2>
+        <p class="dashboard-description">
+            Use the navigation menu on the left to access different sections of the application.
+            Select a menu item to get started.
+        </p>
     </div>
 </div>

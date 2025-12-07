@@ -1,20 +1,21 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './core/pages/home/home.component';
 import { authGuard } from './core/auth/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
+import { companyUserGuard } from './core/guards/company-user.guard';
 import { userResolver } from './core/resolvers/user.resolver';
 import { appSettingsResolver } from './core/resolvers/app-settings.resolver';
 
 export const routes: Routes = [
     {
         path: '',
-        redirectTo: 'home',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
     },
     {
-        path: 'home',
-        data: { title: 'Home' },
-        component: HomeComponent,
+        path: 'dashboard',
+        data: { title: 'Dashboard' },
         canActivate: [authGuard],
+        loadComponent: () => import('./core/pages/home/home.component').then(m => m.HomeComponent),
         resolve: { userData: userResolver, appSettings: appSettingsResolver },
     },
 
@@ -33,7 +34,7 @@ export const routes: Routes = [
 
     {
         path: 'companies',
-        canActivate: [authGuard],
+        canActivate: [authGuard, adminGuard],
         children: [
             {
                 path: '',
@@ -60,7 +61,7 @@ export const routes: Routes = [
 
     {
         path: 'users',
-        canActivate: [authGuard],
+        canActivate: [authGuard, adminGuard],
         children: [
             {
                 path: '',
@@ -83,6 +84,26 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/users/pages/user-form/user-form.component').then(m => m.UserFormComponent),
             }
         ]
+    },
+
+    // Company User Routes
+    {
+        path: 'products',
+        data: { title: 'Products' },
+        canActivate: [authGuard, companyUserGuard],
+        loadComponent: () => import('./core/pages/home/home.component').then(m => m.HomeComponent),
+    },
+    {
+        path: 'sales',
+        data: { title: 'Sales' },
+        canActivate: [authGuard, companyUserGuard],
+        loadComponent: () => import('./core/pages/home/home.component').then(m => m.HomeComponent),
+    },
+    {
+        path: 'purchases',
+        data: { title: 'Purchases' },
+        canActivate: [authGuard, companyUserGuard],
+        loadComponent: () => import('./core/pages/home/home.component').then(m => m.HomeComponent),
     },
 
 ];

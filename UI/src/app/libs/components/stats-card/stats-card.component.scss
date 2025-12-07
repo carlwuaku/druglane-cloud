@@ -1,0 +1,175 @@
+// Stats Link Wrapper
+.stats-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+
+  &:hover {
+    text-decoration: none;
+
+    .stats-card {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+  }
+}
+
+// Stats Card
+.stats-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// Card Content Layout
+.stats-card-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  height: 100%;
+}
+
+// Icon Container
+.icon-container {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+
+  .stats-card:hover & {
+    transform: scale(1.05);
+  }
+
+  .stats-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: white;
+  }
+}
+
+// Stats Info Section
+.stats-info {
+  flex: 1;
+  min-width: 0; // Allows text truncation
+}
+
+.stats-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1b5e20;
+  line-height: 1.2;
+  margin-bottom: 4px;
+
+  .loading-text {
+    color: #999;
+    font-weight: 400;
+  }
+}
+
+.stats-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stats-description {
+  font-size: 0.75rem;
+  color: #888;
+  line-height: 1.4;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+// Responsive Design
+@media (max-width: 640px) {
+  .stats-card-content {
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .icon-container {
+    width: 56px;
+    height: 56px;
+
+    .stats-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .stats-count {
+    font-size: 1.75rem;
+  }
+
+  .stats-title {
+    font-size: 0.8125rem;
+  }
+
+  .stats-description {
+    font-size: 0.6875rem;
+  }
+}
+
+// Color Variations (can be used with iconBackgroundColor input)
+.stats-card.green {
+  .icon-container {
+    background-color: #2e7d32;
+  }
+}
+
+.stats-card.blue {
+  .icon-container {
+    background-color: #1976d2;
+  }
+}
+
+.stats-card.red {
+  .icon-container {
+    background-color: #d32f2f;
+  }
+}
+
+.stats-card.orange {
+  .icon-container {
+    background-color: #f57c00;
+  }
+}
+
+.stats-card.purple {
+  .icon-container {
+    background-color: #7b1fa2;
+  }
+}
+
+.stats-card.teal {
+  .icon-container {
+    background-color: #00897b;
+  }
+}

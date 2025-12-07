@@ -58,8 +58,8 @@ export class UserFormComponent implements OnInit {
         // Load roles and companies for dropdowns
         // For now, using static roles until we have a roles endpoint
         this.roleOptions = [
-            { key: '1', value: 'Admin' },
-            { key: '2', value: 'Company User' }
+            { value: '1', key: 'Admin' },
+            { value: '2', key: 'Company User' }
         ];
 
         this.companyService.getCompanies(1, 1000).subscribe({
@@ -67,8 +67,8 @@ export class UserFormComponent implements OnInit {
                 this.companyOptions = [
                     { key: '', value: 'None' },
                     ...response.data.map(company => ({
-                        key: company.id.toString(),
-                        value: company.name
+                        value: company.id.toString(),
+                        key: company.name
                     }))
                 ];
                 this.initializeForm(user);
@@ -114,6 +114,15 @@ export class UserFormComponent implements OnInit {
                 value: '',
                 hint: 'Minimum 8 characters'
             });
+            this.formFields.push({
+                ...new FormField('password'),
+                name: 'password_confirmation',
+                label: 'Confirm Password',
+                placeholder: 'Re-enter password...',
+                required: true,
+                value: '',
+                hint: 'Minimum 8 characters'
+            });
         } else {
             this.formFields.push({
                 ...new FormField('password'),
@@ -143,7 +152,8 @@ export class UserFormComponent implements OnInit {
                 required: false,
                 value: user?.company_id?.toString() || '',
                 options: this.companyOptions,
-                hint: 'Assign user to a company (required for Company User role)'
+                hint: 'Assign user to a company (required for Company User role)',
+
             },
             {
                 ...new FormField('checkbox'),

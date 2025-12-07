@@ -6,7 +6,7 @@
 
 
 html {
-  @include mat.theme((color: (primary: mat.$azure-palette, // Similar to indigo
+  @include mat.theme((color: (primary: mat.$green-palette,
         tertiary: mat.$orange-palette,
       ),
       typography: Lato,
@@ -36,7 +36,7 @@ body {
 }
 
 .darkMode {
-  @include mat.theme((color: (primary: mat.$blue-palette,
+  @include mat.theme((color: (primary: mat.$green-palette,
         theme-type: dark,
       )))
 }
@@ -293,7 +293,7 @@ h5 {
   background-attachment: fixed;
   background-position: 100%;
   background-repeat: no-repeat;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #66bb6a 100%);
   ;
   background-size: contain
     /* border: thin solid */
@@ -321,7 +321,7 @@ h5 {
 
 .bd-navbar {
   min-height: 4rem;
-  background-color: #2196f3;
+  background-color: #2e7d32;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .05), inset 0 -1px 0 rgba(0, 0, 0, .1);
 }
 
@@ -330,7 +330,7 @@ h5 {
 }
 
 .table-striped tbody tr:nth-of-type(odd) {
-  background-color: #edf4ff;
+  background-color: #e8f5e9;
 }
 
 
@@ -723,7 +723,7 @@ label {
 }
 
 .shadow-card:hover {
-  box-shadow: 0px 0px 6px lightskyblue
+  box-shadow: 0px 0px 6px lightgreen
 }
 
 .text_18 {
@@ -748,7 +748,7 @@ mat-card mat-card {
   @include mat.elevation(1); // Lower elevation than parent
   margin: 16px 0;
   background-color: var(--mat-app-surface-variant);
-  border-color: #00BCD4 !important;
+  border-color: #43a047 !important;
 
   .mat-mdc-card-content {
     padding: 16px; // Reduced padding

@@ -1,0 +1,64 @@
+<div class="sidebar-container">
+    <!-- User Profile Section -->
+    <div class="user-profile-section">
+        <div class="profile-background"></div>
+        <div class="profile-content">
+            @if (currentUser(); as user) {
+            <div class="user-avatar">
+                <mat-icon class="avatar-icon">account_circle</mat-icon>
+            </div>
+            <div class="user-info">
+                <h3 class="user-name">{{user.displayName || user.name}}</h3>
+                <p class="user-role">{{user.role.display_name}}</p>
+                @if (user.company) {
+                <p class="user-company">{{user.company.name}}</p>
+                }
+            </div>
+            }
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <div class="nav-menu">
+        @for (item of menuItems(); track $index) {
+        @if (item.actions && item.actions.length > 0) {
+        <!-- Menu item with sub-actions (accordion) -->
+        <mat-expansion-panel class="menu-panel">
+            <mat-expansion-panel-header class="menu-header">
+                <mat-panel-title class="menu-title">
+                    <mat-icon class="menu-icon">{{item.icon || 'dashboard'}}</mat-icon>
+                    <span>{{item.title}}</span>
+                </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="submenu-container">
+                @for (action of item.actions; track $index) {
+                @if (action.type === 'link') {
+                <a [routerLink]="action.url" [queryParams]="action.urlParams" class="submenu-item"
+                    routerLinkActive="active">
+                    @if (action.icon) {
+                    <mat-icon class="submenu-icon">{{action.icon}}</mat-icon>
+                    }
+                    <span>{{action.label}}</span>
+                </a>
+                } @else if (action.type === 'button') {
+                <button class="submenu-item" (click)="executeAction(action)">
+                    @if (action.icon) {
+                    <mat-icon class="submenu-icon">{{action.icon}}</mat-icon>
+                    }
+                    <span>{{action.label}}</span>
+                </button>
+                }
+                }
+            </div>
+        </mat-expansion-panel>
+        } @else {
+        <!-- Simple menu item without sub-actions -->
+        <a [routerLink]="item.url" [queryParams]="item.urlParams" class="menu-item-simple"
+            routerLinkActive="active">
+            <mat-icon class="menu-icon">{{item.icon || 'dashboard'}}</mat-icon>
+            <span>{{item.title}}</span>
+        </a>
+        }
+        }
+    </div>
+</div>

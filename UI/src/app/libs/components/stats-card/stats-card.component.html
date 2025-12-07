@@ -1,0 +1,51 @@
+@if (url()) {
+<a [routerLink]="url()" [queryParams]="urlParams()" class="stats-link">
+    <mat-card class="stats-card">
+        <div class="stats-card-content">
+            <!-- Icon Section -->
+            <div class="icon-container" [style.background-color]="iconBackgroundColor()">
+                <mat-icon class="stats-icon">{{icon()}}</mat-icon>
+            </div>
+
+            <!-- Content Section -->
+            <div class="stats-info">
+                <div class="stats-count">
+                    @if (loading()) {
+                    <span class="loading-text">...</span>
+                    } @else {
+                    {{count()}}
+                    }
+                </div>
+                <div class="stats-title">{{title()}}</div>
+                @if (description()) {
+                <div class="stats-description">{{description()}}</div>
+                }
+            </div>
+        </div>
+    </mat-card>
+</a>
+} @else {
+<mat-card class="stats-card">
+    <div class="stats-card-content">
+        <!-- Icon Section -->
+        <div class="icon-container" [style.background-color]="iconBackgroundColor()">
+            <mat-icon class="stats-icon">{{icon()}}</mat-icon>
+        </div>
+
+        <!-- Content Section -->
+        <div class="stats-info">
+            <div class="stats-count">
+                @if (loading()) {
+                <span class="loading-text">...</span>
+                } @else {
+                {{count()}}
+                }
+            </div>
+            <div class="stats-title">{{title()}}</div>
+            @if (description()) {
+            <div class="stats-description">{{description()}}</div>
+            }
+        </div>
+    </div>
+</mat-card>
+}

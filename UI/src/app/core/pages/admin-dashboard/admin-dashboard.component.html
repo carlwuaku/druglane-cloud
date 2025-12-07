@@ -1,0 +1,81 @@
+<div class="flex flex-col gap-4">
+    <!-- Welcome Banner -->
+    <section class="homeBanner rounded-lg">
+        <div class="text-white">
+            @if (user(); as currentUser) {
+            <div class="flex gap-2 items-start flex-wrap">
+                <div class="flex-auto">
+                    <h3 class="text-3xl font-bold mb-4">
+                        Welcome, {{currentUser.displayName}}!
+                    </h3>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="bg-white px-3 py-1.5 text-black rounded-md font-medium">
+                            Role: {{currentUser.role.display_name}}
+                        </span>
+                        <span class="bg-white px-3 py-1.5 text-black rounded-md font-medium">
+                            Email: {{currentUser.email}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </section>
+
+    <!-- Dashboard Title -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">Admin Dashboard</h2>
+        <p class="text-gray-600">Overview of system statistics and metrics</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <app-stats-card
+            [title]="'Total Companies'"
+            [count]="totalCompanies()"
+            [icon]="'business'"
+            [url]="'/companies'"
+            [iconBackgroundColor]="'#2e7d32'"
+            [loading]="loading()"
+            [description]="'All registered companies'">
+        </app-stats-card>
+
+        <app-stats-card
+            [title]="'Active Companies'"
+            [count]="activeCompanies()"
+            [icon]="'verified'"
+            [url]="'/companies'"
+            [urlParams]="{status: 'active'}"
+            [iconBackgroundColor]="'#43a047'"
+            [loading]="loading()"
+            [description]="'Companies with active licenses'">
+        </app-stats-card>
+
+        <app-stats-card
+            [title]="'Total Users'"
+            [count]="totalUsers()"
+            [icon]="'people'"
+            [url]="'/users'"
+            [iconBackgroundColor]="'#1976d2'"
+            [loading]="loading()"
+            [description]="'All system users'">
+        </app-stats-card>
+
+        <app-stats-card
+            [title]="'Active Users'"
+            [count]="activeUsers()"
+            [icon]="'person_check'"
+            [url]="'/users'"
+            [urlParams]="{status: 'active'}"
+            [iconBackgroundColor]="'#0288d1'"
+            [loading]="loading()"
+            [description]="'Currently active users'">
+        </app-stats-card>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
+        <p class="text-gray-600">Use the sidebar navigation to manage companies, users, and system settings.</p>
+    </div>
+</div>

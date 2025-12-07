@@ -1,0 +1,153 @@
+<div class="flex flex-col gap-4">
+    <!-- Welcome Banner -->
+    <section class="homeBanner rounded-lg">
+        <div class="text-white">
+            @if (user(); as currentUser) {
+            <div class="flex gap-2 items-start flex-wrap">
+                <div class="flex-auto">
+                    <h3 class="text-3xl font-bold mb-4">
+                        Welcome, {{currentUser.displayName}}!
+                    </h3>
+                    <div class="flex gap-2 flex-wrap">
+                        @if(currentUser.company){
+                        <span class="bg-white px-3 py-1.5 text-black rounded-md font-medium">
+                            Company: {{currentUser.company.name}}
+                        </span>
+                        }
+                        <span class="bg-white px-3 py-1.5 text-black rounded-md font-medium">
+                            Role: {{currentUser.role.display_name}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </section>
+
+    <!-- Dashboard Title -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">Inventory Dashboard</h2>
+        <p class="text-gray-600">Real-time overview of your inventory and sales</p>
+    </div>
+
+    <!-- Tabs for different sections -->
+    <mat-tab-group class="bg-white rounded-xl shadow-sm" [dynamicHeight]="true">
+        <!-- Overview Tab -->
+        <mat-tab label="Overview">
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <app-stats-card
+                        [title]="'Total Products'"
+                        [count]="totalProducts()"
+                        [icon]="'inventory_2'"
+                        [url]="'/products'"
+                        [iconBackgroundColor]="'#2e7d32'"
+                        [loading]="loading()"
+                        [description]="'All products in inventory'">
+                    </app-stats-card>
+
+                    <app-stats-card
+                        [title]="'Active Products'"
+                        [count]="activeProducts()"
+                        [icon]="'check_circle'"
+                        [url]="'/products'"
+                        [urlParams]="{status: 'active'}"
+                        [iconBackgroundColor]="'#43a047'"
+                        [loading]="loading()"
+                        [description]="'Currently available products'">
+                    </app-stats-card>
+
+                    <app-stats-card
+                        [title]="'Today\'s Sales'"
+                        [count]="todaySales()"
+                        [icon]="'trending_up'"
+                        [url]="'/sales'"
+                        [iconBackgroundColor]="'#1976d2'"
+                        [loading]="loading()"
+                        [description]="'Sales transactions today'">
+                    </app-stats-card>
+
+                    <app-stats-card
+                        [title]="'Out of Stock'"
+                        [count]="outOfStock()"
+                        [icon]="'remove_shopping_cart'"
+                        [url]="'/products'"
+                        [urlParams]="{status: 'out-of-stock'}"
+                        [iconBackgroundColor]="'#f57c00'"
+                        [loading]="loading()"
+                        [description]="'Products needing restock'">
+                    </app-stats-card>
+                </div>
+            </div>
+        </mat-tab>
+
+        <!-- Stock Alerts Tab -->
+        <mat-tab label="Stock Alerts">
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <app-stats-card
+                        [title]="'Nearing Min Stock'"
+                        [count]="nearingMinStock()"
+                        [icon]="'warning'"
+                        [url]="'/products'"
+                        [urlParams]="{status: 'low-stock'}"
+                        [iconBackgroundColor]="'#ff9800'"
+                        [loading]="loading()"
+                        [description]="'Products below minimum threshold'">
+                    </app-stats-card>
+
+                    <app-stats-card
+                        [title]="'Out of Stock'"
+                        [count]="outOfStock()"
+                        [icon]="'remove_shopping_cart'"
+                        [url]="'/products'"
+                        [urlParams]="{status: 'out-of-stock'}"
+                        [iconBackgroundColor]="'#f44336'"
+                        [loading]="loading()"
+                        [description]="'Zero quantity products'">
+                    </app-stats-card>
+
+                    <app-stats-card
+                        [title]="'Exceeding Max Stock'"
+                        [count]="exceedingMaxStock()"
+                        [icon]="'inventory'"
+                        [url]="'/products'"
+                        [urlParams]="{status: 'overstock'}"
+                        [iconBackgroundColor]="'#7b1fa2'"
+                        [loading]="loading()"
+                        [description]="'Products above maximum threshold'">
+                    </app-stats-card>
+                </div>
+            </div>
+        </mat-tab>
+
+        <!-- Expiry Alerts Tab -->
+        <mat-tab label="Expiry Alerts">
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <app-stats-card
+                        [title]="'Expired Products'"
+                        [count]="expiredProducts()"
+                        [icon]="'error_outline'"
+                        [url]="'/products'"
+                        [urlParams]="{status: 'expired'}"
+                        [iconBackgroundColor]="'#d32f2f'"
+                        [loading]="loading()"
+                        [description]="'Products past expiry date'">
+                    </app-stats-card>
+
+                    <app-stats-card
+                        [title]="'Expiring Next Month'"
+                        [count]="expiringNextMonth()"
+                        [icon]="'schedule'"
+                        [url]="'/products'"
+                        [urlParams]="{status: 'expiring-soon'}"
+                        [iconBackgroundColor]="'#f57c00'"
+                        [loading]="loading()"
+                        [description]="'Products expiring within 30 days'">
+                    </app-stats-card>
+                </div>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</div>

@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { AppService } from '../../../app.service';
 import { DashboardItem, MenuAlert } from '../../../libs/types/MenuItem.interface';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { DashboardTileComponent } from "../../../libs/components/dashboard-tile/dashboard-tile.component";
 import { Subject, takeUntil } from 'rxjs';
 import { User } from '../../models/user.model';
@@ -28,6 +28,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private appService = inject(AppService);
     private authService = inject(AuthService);
     private route = inject(ActivatedRoute);
+    private router = inject(Router);
     private data = toSignal(this.route.data);
     institutionSettings = computed(() => this.data()?.['appSettings'] as AppSettings | null);
     user = computed(() => this.data()?.['userData'] as User | null);
@@ -61,16 +62,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        // Redirect users to their role-specific dashboard
+        const currentUser = this.user();
+        if (currentUser) {
+            if (currentUser.isAdmin) {
+                this.router.navigate(['/admin-dashboard'], { replaceUrl: true });
+                return;
+            } else if (currentUser.isCompanyUser) {
+                this.router.navigate(['/company-dashboard'], { replaceUrl: true });
+                return;
+            }
+        }
+
         this.authService.getHomeMenu().pipe(takeUntil(this.destroy$)).subscribe(data => {
             this.menuItems.set(data.data.dashboardMenu);
             this.subtitles.set(data.data.subtitles);
             this.alerts.set(data.data.alerts);
         })
-        // this.authService.getUser().pipe(takeUntil(this.destroy$)).subscribe(data => {
-        //   this.user.set(data);
-        // });
-        // this.appService.getAppSettings().pipe(takeUntil(this.destroy$)).subscribe(data => {
-        //   this.institutionSettings.set(data);
-        // });
     }
 }
