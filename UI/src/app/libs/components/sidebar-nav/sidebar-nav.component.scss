@@ -110,7 +110,7 @@
   color: #ffffff !important;
   box-shadow: none !important;
   margin: 4px 8px !important;
-  border-radius: 8px !important;
+  border-radius: 0px !important;
 
   &.mat-expanded {
     margin: 4px 8px !important;
@@ -121,7 +121,7 @@
     color: #ffffff !important;
     padding: 0 12px !important;
     height: 48px !important;
-    border-radius: 8px !important;
+    border-radius: 0px !important;
     transition: background-color 0.2s ease !important;
 
     &:hover {
@@ -174,7 +174,7 @@
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 0px;
   transition: all 0.2s ease;
   cursor: pointer;
 

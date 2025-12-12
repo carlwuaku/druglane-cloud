@@ -15,15 +15,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             AdminUserSeeder::class,
+            CompanyUserSeeder::class,
         ]);
-
-        // Optionally seed test data in development
-        // Uncomment the following lines to create test companies and users
-        // if (app()->environment('local')) {
-        //     $this->call([
-        //         CompanySeeder::class,
-        //         CompanyUserSeeder::class,
-        //     ]);
-        // }
     }
 }

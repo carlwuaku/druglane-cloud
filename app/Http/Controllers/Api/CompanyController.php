@@ -62,7 +62,7 @@ class CompanyController extends Controller
             $search = $request->input('search');
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('contact_email', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('license_key', 'like', "%{$search}%");
             });
         }
@@ -91,10 +91,10 @@ class CompanyController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name", "contact_email"},
+     *             required={"name", "email"},
      *             @OA\Property(property="name", type="string", example="Acme Corporation"),
-     *             @OA\Property(property="contact_email", type="string", format="email", example="contact@acme.com"),
-     *             @OA\Property(property="contact_phone", type="string", example="+1-555-0123"),
+     *             @OA\Property(property="email", type="string", format="email", example="contact@acme.com"),
+     *             @OA\Property(property="phone", type="string", example="+1-555-0123"),
      *             @OA\Property(property="address", type="string", example="123 Business St"),
      *             @OA\Property(property="city", type="string", example="New York"),
      *             @OA\Property(property="country", type="string", example="USA"),
@@ -126,8 +126,8 @@ class CompanyController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'contact_email' => 'required|email|max:255',
-            'contact_phone' => 'nullable|string|max:50',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
@@ -214,8 +214,8 @@ class CompanyController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             @OA\Property(property="name", type="string", example="Acme Corporation Updated"),
-     *             @OA\Property(property="contact_email", type="string", format="email", example="contact@acme.com"),
-     *             @OA\Property(property="contact_phone", type="string", example="+1-555-0123"),
+     *             @OA\Property(property="email", type="string", format="email", example="contact@acme.com"),
+     *             @OA\Property(property="phone", type="string", example="+1-555-0123"),
      *             @OA\Property(property="address", type="string", example="123 Business St"),
      *             @OA\Property(property="city", type="string", example="New York"),
      *             @OA\Property(property="country", type="string", example="USA"),
@@ -249,8 +249,8 @@ class CompanyController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
-            'contact_email' => 'sometimes|required|email|max:255',
-            'contact_phone' => 'nullable|string|max:50',
+            'email' => 'sometimes|required|email|max:255',
+            'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',

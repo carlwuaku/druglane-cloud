@@ -86,24 +86,24 @@ export const routes: Routes = [
         ]
     },
 
-    // Company User Routes
+    // Company User Routes - Company Data Access
     {
         path: 'products',
         data: { title: 'Products' },
         canActivate: [authGuard, companyUserGuard],
-        loadComponent: () => import('./core/pages/home/home.component').then(m => m.HomeComponent),
+        loadComponent: () => import('./features/company-data/pages/products-list/products-list.component').then(m => m.ProductsListComponent),
     },
     {
         path: 'sales',
         data: { title: 'Sales' },
         canActivate: [authGuard, companyUserGuard],
-        loadComponent: () => import('./core/pages/home/home.component').then(m => m.HomeComponent),
+        loadComponent: () => import('./features/company-data/pages/sales-list/sales-list.component').then(m => m.SalesListComponent),
     },
     {
         path: 'purchases',
         data: { title: 'Purchases' },
         canActivate: [authGuard, companyUserGuard],
-        loadComponent: () => import('./core/pages/home/home.component').then(m => m.HomeComponent),
+        loadComponent: () => import('./features/company-data/pages/purchases-list/purchases-list.component').then(m => m.PurchasesListComponent),
     },
 
 ];

@@ -207,8 +207,8 @@ export class UserFormComponent implements OnInit {
                     data[field.name] = value === '' || value === null ? null : parseInt(value as string);
                 } else if (field.name === 'is_active') {
                     data[field.name] = field.value === true || field.value === 'true' || field.value === 1;
-                } else if (field.name === 'password' && field.value === '') {
-                    // Skip empty password in edit mode
+                } else if ((field.name === 'password' || field.name === 'password_confirmation') && field.value === '') {
+                    // Skip empty password fields in edit mode
                     if (!this.isEditMode) {
                         data[field.name] = field.value;
                     }
@@ -217,6 +217,12 @@ export class UserFormComponent implements OnInit {
                 }
             }
         });
+
+        // Validate passwords match in create mode
+        if (!this.isEditMode && data.password !== data.password_confirmation) {
+            this.notify.failNotification('Password and confirmation password do not match');
+            return;
+        }
 
         // Validate company_id for company_user role
         if (data.role_id === 2 && !data.company_id) {

@@ -16,7 +16,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-home',
-    imports: [MatButtonModule, MatCardModule, RouterModule, DashboardTileComponent, MatIconModule, AlertComponent,],
+    imports: [MatButtonModule, MatCardModule, RouterModule, MatIconModule, AlertComponent,],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })

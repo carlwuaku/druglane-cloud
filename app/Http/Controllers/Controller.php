@@ -53,6 +53,16 @@ use Illuminate\Routing\Controller as BaseController;
  *     description="User management (Admin only)"
  * )
  *
+ * @OA\Tag(
+ *     name="Database Upload",
+ *     description="Database backup upload from desktop applications"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Company Data",
+ *     description="Company-specific data access (Products, Sales, Purchases)"
+ * )
+ *
  * @OA\Schema(
  *     schema="Company",
  *     type="object",
@@ -67,8 +77,8 @@ use Illuminate\Routing\Controller as BaseController;
  *     @OA\Property(property="license_status", type="string", enum={"active", "inactive", "expired", "suspended"}, example="active"),
  *     @OA\Property(property="license_issued_at", type="string", format="date-time", example="2025-01-01T00:00:00Z"),
  *     @OA\Property(property="license_expires_at", type="string", format="date-time", example="2026-01-01T00:00:00Z"),
- *     @OA\Property(property="contact_email", type="string", format="email", example="contact@acme.com"),
- *     @OA\Property(property="contact_phone", type="string", example="+1-555-0123"),
+ *     @OA\Property(property="email", type="string", format="email", example="contact@acme.com"),
+ *     @OA\Property(property="phone", type="string", example="+1-555-0123"),
  *     @OA\Property(property="address", type="string", example="123 Business St"),
  *     @OA\Property(property="city", type="string", example="New York"),
  *     @OA\Property(property="country", type="string", example="USA"),

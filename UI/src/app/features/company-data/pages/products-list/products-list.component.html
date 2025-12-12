@@ -1,0 +1,11 @@
+<app-page-container [pageTitle]="'Products'">
+    <div class="page-header">
+        <h1>Products</h1>
+        <p class="text-muted">View all products from your company's inventory database</p>
+    </div>
+
+    <app-load-data-list [url]="apiUrl" [preload]="true" [showPagination]="true" [showSearch]="true" [showExport]="true"
+        [showActions]="false" [rowSelection]="undefined" [listTitleField]="'name'" [emptyMessage]="'No products found'"
+        [limit]="100">
+    </app-load-data-list>
+</app-page-container>

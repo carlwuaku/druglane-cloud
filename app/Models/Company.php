@@ -20,14 +20,15 @@ class Company extends Model
     protected $fillable = [
         'name',
         'license_key',
+        'jwt_key',
         'is_activated',
         'activated_at',
         'activated_by_machine_id',
         'license_status',
         'license_issued_at',
         'license_expires_at',
-        'contact_email',
-        'contact_phone',
+        'email',
+        'phone',
         'address',
         'city',
         'country',
@@ -160,6 +161,26 @@ class Company extends Model
         } while (self::where('license_key', $formatted)->exists());
 
         return $formatted;
+    }
+
+    /**
+     * Generate a JWT key for signing tokens.
+     */
+    public static function generateJwtKey(): string
+    {
+        return bin2hex(random_bytes(32)); // 64 character hex string
+    }
+
+    /**
+     * Get or generate JWT key.
+     */
+    public function getJwtKey(): string
+    {
+        if (empty($this->jwt_key)) {
+            $this->jwt_key = self::generateJwtKey();
+            $this->save();
+        }
+        return $this->jwt_key;
     }
 
     /**

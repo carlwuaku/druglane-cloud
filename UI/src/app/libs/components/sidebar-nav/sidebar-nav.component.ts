@@ -69,7 +69,22 @@ export class SidebarNavComponent implements OnInit {
                     icon: 'business',
                     options: [],
                     permissions: [],
-                    actions: [],
+                    actions: [
+                        {
+                            type: 'link',
+                            label: 'View All Companies',
+                            icon: 'list',
+                            url: '/companies',
+                            urlParams: {}
+                        },
+                        {
+                            type: 'link',
+                            label: 'Add New Company',
+                            icon: 'add_business',
+                            url: '/companies/new',
+                            urlParams: {}
+                        }
+                    ],
                     alerts: [],
                     dataPoints: []
                 },
@@ -82,7 +97,22 @@ export class SidebarNavComponent implements OnInit {
                     icon: 'people',
                     options: [],
                     permissions: [],
-                    actions: [],
+                    actions: [
+                        {
+                            type: 'link',
+                            label: 'View All Users',
+                            icon: 'list',
+                            url: '/users',
+                            urlParams: {}
+                        },
+                        {
+                            type: 'link',
+                            label: 'Add New User',
+                            icon: 'person_add',
+                            url: '/users/new',
+                            urlParams: {}
+                        }
+                    ],
                     alerts: [],
                     dataPoints: []
                 }

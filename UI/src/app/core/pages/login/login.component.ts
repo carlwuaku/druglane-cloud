@@ -116,9 +116,12 @@ export class LoginComponent {
 
         this.startLoginProcess();
 
-        let data = new FormData();
-        data.append('email', this.username.trim());
-        data.append('password', this.password);
+        let data = {
+            email: this.username.trim(),
+            password: this.password
+        };
+        // data.append('email', this.username.trim());
+        // data.append('password', this.password);
 
         this.dbService.post<LoginResponse>(`api/login`, data)
             .pipe(take(1))

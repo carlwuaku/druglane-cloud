@@ -14,8 +14,8 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000",
-            "description": "Local Server"
+            "url": "http://my-default-host.com",
+            "description": "API Server"
         }
     ],
     "paths": {
@@ -194,6 +194,83 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/profile": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get current user profile",
+                "description": "Get authenticated user's profile information",
+                "operationId": "94a5f4c5f5e5755cf43698cf9bc49e9d",
+                "responses": {
+                    "200": {
+                        "description": "User profile retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "System Administrator"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@druglane.com"
+                                                },
+                                                "role": {
+                                                    "type": "object"
+                                                },
+                                                "company": {
+                                                    "type": "object",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "role": {
+                                            "type": "string",
+                                            "example": "admin"
+                                        },
+                                        "company": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/logout": {
@@ -890,6 +967,1085 @@
                 ]
             }
         },
+        "/api/company-data/products": {
+            "get": {
+                "tags": [
+                    "Company Data"
+                ],
+                "summary": "Get company products",
+                "description": "Retrieve paginated list of products from the company's SQLite database. Company users only.",
+                "operationId": "3863df3057232880fff005a14a31a684",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page offset (not page number)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "example": 100
+                        }
+                    },
+                    {
+                        "name": "param",
+                        "in": "query",
+                        "description": "Search query for product name, barcode, or category",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "Paracetamol"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Paracetamol 500mg"
+                                                    },
+                                                    "category": {
+                                                        "type": "string",
+                                                        "example": "Analgesics"
+                                                    },
+                                                    "price": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 2.5
+                                                    },
+                                                    "cost_price": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 1.5
+                                                    },
+                                                    "current_stock": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 150
+                                                    },
+                                                    "min_stock": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 20
+                                                    },
+                                                    "expiry": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "nullable": true
+                                                    },
+                                                    "barcode": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 250
+                                        },
+                                        "displayColumns": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "columnLabels": {
+                                            "type": "object"
+                                        },
+                                        "columnFilters": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No company associated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No company associated with this account"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Failed to retrieve products"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/company-data/sales": {
+            "get": {
+                "tags": [
+                    "Company Data"
+                ],
+                "summary": "Get company sales",
+                "description": "Retrieve paginated list of sales transactions from the company's SQLite database. Company users only.",
+                "operationId": "3ab76eba394f7d6fc4c83a0273db3590",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page offset",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "example": 100
+                        }
+                    },
+                    {
+                        "name": "param",
+                        "in": "query",
+                        "description": "Search query for sale code, customer, or creditor name",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "SALE-001"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Filter sales from this date (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-01-01"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Filter sales until this date (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-12-31"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "code": {
+                                                        "type": "string",
+                                                        "example": "SALE-001"
+                                                    },
+                                                    "date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "example": "2025-12-09"
+                                                    },
+                                                    "customer": {
+                                                        "type": "string",
+                                                        "example": "John Doe",
+                                                        "nullable": true
+                                                    },
+                                                    "total_amount": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 125.5
+                                                    },
+                                                    "amount_paid": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 125.5
+                                                    },
+                                                    "payment_method": {
+                                                        "type": "string",
+                                                        "example": "Cash"
+                                                    },
+                                                    "credit_paid": {
+                                                        "type": "integer",
+                                                        "example": 0
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "displayColumns": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "columnLabels": {
+                                            "type": "object"
+                                        },
+                                        "columnFilters": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "No company associated"
+                    },
+                    "500": {
+                        "description": "Failed to retrieve sales"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/company-data/purchases": {
+            "get": {
+                "tags": [
+                    "Company Data"
+                ],
+                "summary": "Get company purchases",
+                "description": "Retrieve paginated list of purchase orders from the company's SQLite database. Company users only.",
+                "operationId": "b88452bd276718304178e2cb02f7f6b2",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page offset",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "example": 100
+                        }
+                    },
+                    {
+                        "name": "param",
+                        "in": "query",
+                        "description": "Search query for purchase code, invoice, or vendor name",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "PO-001"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Filter purchases from this date (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-01-01"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Filter purchases until this date (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-12-31"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "code": {
+                                                        "type": "string",
+                                                        "example": "PO-001"
+                                                    },
+                                                    "date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "example": "2025-12-09"
+                                                    },
+                                                    "vendor_name": {
+                                                        "type": "string",
+                                                        "example": "ABC Pharmaceuticals"
+                                                    },
+                                                    "total_amount": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 5000
+                                                    },
+                                                    "amount_paid": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 2500,
+                                                        "nullable": true
+                                                    },
+                                                    "payment_method": {
+                                                        "type": "string",
+                                                        "example": "Bank Transfer",
+                                                        "nullable": true
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "Completed",
+                                                        "nullable": true
+                                                    },
+                                                    "invoice": {
+                                                        "type": "string",
+                                                        "example": "INV-123",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 150
+                                        },
+                                        "displayColumns": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "columnLabels": {
+                                            "type": "object"
+                                        },
+                                        "columnFilters": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "No company associated"
+                    },
+                    "500": {
+                        "description": "Failed to retrieve purchases"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/receive-file": {
+            "post": {
+                "tags": [
+                    "Database Upload"
+                ],
+                "summary": "Upload database backup",
+                "description": "Upload a database backup ZIP file from desktop application. The ZIP should contain SQLite database file.",
+                "operationId": "a6be4ec222ed7020fb4037fe5e7ea7ef",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "upload_file",
+                                    "company_id"
+                                ],
+                                "properties": {
+                                    "upload_file": {
+                                        "description": "ZIP file containing SQLite database (max 100MB)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "company_id": {
+                                        "description": "Company ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "description": "Optional uploader name",
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "description": "Optional uploader email",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "phone": {
+                                        "description": "Optional uploader phone",
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "+1-555-0123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "File uploaded successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "1"
+                                        },
+                                        "path": {
+                                            "type": "string",
+                                            "example": "http://example.com/storage/company_uploads/1/12345/database.sqlite"
+                                        },
+                                        "upload_id": {
+                                            "type": "integer",
+                                            "example": 42
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "File uploaded successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "0"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Upload failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "0"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Upload failed: error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/get-latest-database": {
+            "post": {
+                "tags": [
+                    "Database Upload"
+                ],
+                "summary": "Get latest database info",
+                "description": "Retrieve the path to the latest active database backup for a company. Used by desktop applications.",
+                "operationId": "b26478531be3d8d693988a623af84ec6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "company_id"
+                                ],
+                                "properties": {
+                                    "company_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Database path retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "1"
+                                        },
+                                        "database_path": {
+                                            "type": "string",
+                                            "example": "/path/to/storage/company_uploads/1/12345/database.sqlite"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No database found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "0"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No database found for this company"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "0"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/license/validate": {
+            "post": {
+                "tags": [
+                    "License"
+                ],
+                "summary": "Validate license key",
+                "description": "Check if a license key is valid and active. Used by desktop applications.",
+                "operationId": "8248842c5ebfedab29a0fdf2f6b4a7aa",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "license_key"
+                                ],
+                                "properties": {
+                                    "license_key": {
+                                        "type": "string",
+                                        "example": "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12-3456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "License is valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "valid": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "License is valid"
+                                        },
+                                        "company": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Acme Corporation"
+                                                },
+                                                "is_activated": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "license_status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                },
+                                                "license_expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "License expired or suspended",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "valid": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "License has expired"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid license key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "valid": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid license key"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/license/activate": {
+            "post": {
+                "tags": [
+                    "License"
+                ],
+                "summary": "Activate license",
+                "description": "Activate a license on a specific machine. One-time activation only. Used by desktop applications.",
+                "operationId": "118dd810beed48f8e34333705e597088",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "license_key",
+                                    "machine_id"
+                                ],
+                                "properties": {
+                                    "license_key": {
+                                        "type": "string",
+                                        "example": "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12-3456"
+                                    },
+                                    "machine_id": {
+                                        "description": "Unique machine identifier",
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "DESKTOP-ABC123-UUID-XYZ789"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "License activated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "License activated successfully"
+                                        },
+                                        "company": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Acme Corporation"
+                                                },
+                                                "license_key": {
+                                                    "type": "string"
+                                                },
+                                                "contact_email": {
+                                                    "type": "string"
+                                                },
+                                                "activated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "license_expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "License cannot be activated (suspended or expired)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "License has been suspended"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid license key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid license key"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "License already activated on another machine",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "License has already been activated on another machine"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/license/check-activation": {
+            "post": {
+                "tags": [
+                    "License"
+                ],
+                "summary": "Check activation status",
+                "description": "Verify if a license is activated on a specific machine and still valid. Used by desktop applications.",
+                "operationId": "3f52e51788e2a7728401d51e1bd33991",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "license_key",
+                                    "machine_id"
+                                ],
+                                "properties": {
+                                    "license_key": {
+                                        "type": "string",
+                                        "example": "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12-3456"
+                                    },
+                                    "machine_id": {
+                                        "type": "string",
+                                        "example": "DESKTOP-ABC123-UUID-XYZ789"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "License is activated and valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "activated": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "valid": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "License is activated and valid"
+                                        },
+                                        "company": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Acme Corporation"
+                                                },
+                                                "license_expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "License activated on different machine",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "activated": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "License is activated on a different machine"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid license key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "activated": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid license key"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
         "/api/users": {
             "get": {
                 "tags": [
@@ -1460,12 +2616,24 @@
             "description": "User authentication and authorization endpoints"
         },
         {
+            "name": "License",
+            "description": "Desktop app license activation and validation"
+        },
+        {
             "name": "Companies",
             "description": "Company management (Admin only)"
         },
         {
             "name": "Users",
             "description": "User management (Admin only)"
+        },
+        {
+            "name": "Database Upload",
+            "description": "Database backup upload from desktop applications"
+        },
+        {
+            "name": "Company Data",
+            "description": "Company-specific data access (Products, Sales, Purchases)"
         }
     ]
 }

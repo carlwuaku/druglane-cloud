@@ -32,11 +32,11 @@ export class AppComponent implements OnInit {
   private breakpointObserver = inject(BreakpointObserver);
   private data = toSignal(this.route.data);
 
-  appName = 'Management System';
+  appName = 'Druglane PMS';
   title = '';
 
   // user = this.authService.currentUser;
-  logo: string = "";
+  logo: string = "druglane original logo-2.png";
   user = computed(() => this.data()?.['userData'] as User | null);
   isLoggedIn = false;
   isMobile = false;

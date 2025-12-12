@@ -33,3 +33,5 @@ UI/yarn-error.log
 /storage/app/backups/*.sqlite
 
 **/node_modules
+*.db
+*.sqlite

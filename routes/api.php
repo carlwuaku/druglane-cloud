@@ -19,6 +19,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/signup', [\App\Http\Controllers\Api\AuthController::class,'signup']);
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class,'login']);
 
+// Backward compatibility routes for desktop apps (legacy endpoints)
+Route::get('/api_admin/findBranchByKey', [\App\Http\Controllers\Api\LicenseController::class, 'findBranchByKey']);
+Route::post('/api_admin/receive_file', [\App\Http\Controllers\Api\DatabaseUploadController::class, 'receive_file']);
+
 // License activation routes (for desktop app - no authentication required)
 Route::prefix('license')->group(function () {
     Route::post('/validate', [\App\Http\Controllers\Api\LicenseController::class, 'validateLicense']);
@@ -63,5 +67,12 @@ Route::middleware(['auth:sanctum', 'active', 'license.active'])->group(function 
             return response()->json($user->company);
         }
         return response()->json(['message' => 'No company associated with this account'], 404);
+    });
+
+    // Company data routes - for company users to access their SQLite data
+    Route::prefix('company-data')->group(function () {
+        Route::get('/products', [\App\Http\Controllers\Api\CompanyDataController::class, 'getProducts']);
+        Route::get('/sales', [\App\Http\Controllers\Api\CompanyDataController::class, 'getSales']);
+        Route::get('/purchases', [\App\Http\Controllers\Api\CompanyDataController::class, 'getPurchases']);
     });
 });
