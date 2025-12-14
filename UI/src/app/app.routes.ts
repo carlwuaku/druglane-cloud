@@ -100,6 +100,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/company-data/pages/sales-list/sales-list.component').then(m => m.SalesListComponent),
     },
     {
+        path: 'sales-details',
+        data: { title: 'Sales Details' },
+        canActivate: [authGuard, companyUserGuard],
+        loadComponent: () => import('./features/company-data/pages/sales-details/sales-details.component').then(m => m.SalesDetailsComponent),
+    },
+    {
         path: 'purchases',
         data: { title: 'Purchases' },
         canActivate: [authGuard, companyUserGuard],

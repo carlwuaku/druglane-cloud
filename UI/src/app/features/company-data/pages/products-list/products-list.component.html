@@ -1,10 +1,142 @@
 <app-page-container [pageTitle]="'Products'">
-    <div class="page-header">
-        <h1>Products</h1>
-        <p class="text-muted">View all products from your company's inventory database</p>
-    </div>
 
-    <app-load-data-list [url]="apiUrl" [preload]="true" [showPagination]="true" [showSearch]="true" [showExport]="true"
+    <!-- Statistics Section with Expansion Panel -->
+    <mat-accordion class="mb-6">
+        <mat-expansion-panel class="bg-white rounded-xl shadow-sm">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <mat-icon class="mr-2">insights</mat-icon>
+                    Product Statistics
+                </mat-panel-title>
+                <mat-panel-description>
+                    View inventory statistics and stock levels
+                </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            @if (statistics(); as stats) {
+            <div class="p-4 space-y-6">
+                <!-- Stock Value Section -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                        <mat-icon class="mr-2 text-green-600">payments</mat-icon>
+                        Stock Value
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <app-stats-card [title]="'Total Stock Value (Selling Price)'"
+                            [count]="'GHS ' + stats.total_stock_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                            [icon]="'payments'" [iconBackgroundColor]="'#2e7d32'" [loading]="loading()"
+                            [description]="'Total value at selling price'">
+                        </app-stats-card>
+
+                        <app-stats-card [title]="'Total Stock Value (Cost Price)'"
+                            [count]="'GHS ' + stats.total_cost_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                            [icon]="'account_balance_wallet'" [iconBackgroundColor]="'#1976d2'" [loading]="loading()"
+                            [description]="'Total value at cost price'">
+                        </app-stats-card>
+                    </div>
+                </div>
+
+                <!-- Stock Levels Section -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                        <mat-icon class="mr-2 text-orange-600">inventory</mat-icon>
+                        Stock Levels (Click to filter)
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div (click)="filterProducts('below_min')"
+                             [class.ring-4]="isFilterActive('below_min')"
+                             [class.ring-orange-400]="isFilterActive('below_min')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Below Minimum Stock'" [count]="stats.below_min_stock_count"
+                                [icon]="'warning'" [iconBackgroundColor]="'#ff9800'" [loading]="loading()"
+                                [description]="'At or below minimum but not zero'">
+                            </app-stats-card>
+                        </div>
+
+                        <div (click)="filterProducts('above_max')"
+                             [class.ring-4]="isFilterActive('above_max')"
+                             [class.ring-purple-400]="isFilterActive('above_max')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Above Maximum Stock'" [count]="stats.above_max_stock_count"
+                                [icon]="'inventory'" [iconBackgroundColor]="'#7b1fa2'" [loading]="loading()"
+                                [description]="'Exceeding maximum threshold'">
+                            </app-stats-card>
+                        </div>
+
+                        <div (click)="filterProducts('zero')"
+                             [class.ring-4]="isFilterActive('zero')"
+                             [class.ring-red-400]="isFilterActive('zero')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Zero Stock'" [count]="stats.zero_stock_count"
+                                [icon]="'remove_shopping_cart'" [iconBackgroundColor]="'#f44336'" [loading]="loading()"
+                                [description]="'Products with zero or negative stock'">
+                            </app-stats-card>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overview Section -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center justify-between">
+                        <span class="flex items-center">
+                            <mat-icon class="mr-2 text-blue-600">dashboard</mat-icon>
+                            Overview (Click to filter)
+                        </span>
+                        @if (currentFilter()) {
+                        <button (click)="filterProducts(null)" class="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-md flex items-center gap-1">
+                            <mat-icon class="text-sm">clear</mat-icon>
+                            Clear Filter
+                        </button>
+                        }
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div (click)="filterProducts('all')"
+                             [class.ring-4]="isFilterActive('all')"
+                             [class.ring-green-400]="isFilterActive('all')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Total Products'" [count]="stats.total_products" [icon]="'inventory_2'"
+                                [iconBackgroundColor]="'#2e7d32'" [loading]="loading()"
+                                [description]="'All products in inventory'">
+                            </app-stats-card>
+                        </div>
+
+                        <div (click)="filterProducts('below_min')"
+                             [class.ring-4]="isFilterActive('below_min')"
+                             [class.ring-orange-400]="isFilterActive('below_min')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Below Min Stock'" [count]="stats.below_min_stock_count" [icon]="'warning'"
+                                [iconBackgroundColor]="'#ff9800'" [loading]="loading()" [description]="'Needs restocking'">
+                            </app-stats-card>
+                        </div>
+
+                        <div (click)="filterProducts('zero')"
+                             [class.ring-4]="isFilterActive('zero')"
+                             [class.ring-red-400]="isFilterActive('zero')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Zero Stock'" [count]="stats.zero_stock_count"
+                                [icon]="'remove_shopping_cart'" [iconBackgroundColor]="'#f44336'" [loading]="loading()"
+                                [description]="'Out of stock'">
+                            </app-stats-card>
+                        </div>
+
+                        <div (click)="filterProducts('above_max')"
+                             [class.ring-4]="isFilterActive('above_max')"
+                             [class.ring-purple-400]="isFilterActive('above_max')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Above Max Stock'" [count]="stats.above_max_stock_count"
+                                [icon]="'inventory'" [iconBackgroundColor]="'#7b1fa2'" [loading]="loading()"
+                                [description]="'Overstocked items'">
+                            </app-stats-card>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+        </mat-expansion-panel>
+    </mat-accordion>
+
+    <!-- Products List -->
+    <app-load-data-list [url]="apiUrl()" [preload]="true" [showPagination]="true" [showSearch]="true" [showExport]="true"
         [showActions]="false" [rowSelection]="undefined" [listTitleField]="'name'" [emptyMessage]="'No products found'"
         [limit]="100">
     </app-load-data-list>

@@ -22,6 +22,7 @@ Route::post('/login', [\App\Http\Controllers\Api\AuthController::class,'login'])
 // Backward compatibility routes for desktop apps (legacy endpoints)
 Route::get('/api_admin/findBranchByKey', [\App\Http\Controllers\Api\LicenseController::class, 'findBranchByKey']);
 Route::post('/api_admin/receive_file', [\App\Http\Controllers\Api\DatabaseUploadController::class, 'receive_file']);
+Route::post('/api_admin/sendBulkMail', [\App\Http\Controllers\Api\EmailController::class, 'sendBulkMail']);
 
 // License activation routes (for desktop app - no authentication required)
 Route::prefix('license')->group(function () {
@@ -74,5 +75,8 @@ Route::middleware(['auth:sanctum', 'active', 'license.active'])->group(function 
         Route::get('/products', [\App\Http\Controllers\Api\CompanyDataController::class, 'getProducts']);
         Route::get('/sales', [\App\Http\Controllers\Api\CompanyDataController::class, 'getSales']);
         Route::get('/purchases', [\App\Http\Controllers\Api\CompanyDataController::class, 'getPurchases']);
+        Route::get('/product-statistics', [\App\Http\Controllers\Api\CompanyDataController::class, 'getProductStatistics']);
+        Route::get('/sales-statistics', [\App\Http\Controllers\Api\CompanyDataController::class, 'getSalesStatistics']);
+        Route::get('/sales-details', [\App\Http\Controllers\Api\CompanyDataController::class, 'getSalesDetails']);
     });
 });

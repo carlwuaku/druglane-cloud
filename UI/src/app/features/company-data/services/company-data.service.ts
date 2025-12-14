@@ -10,6 +10,47 @@ export interface CompanyDataResponse<T = any> {
     columnFilters?: any[];
 }
 
+export interface ProductStatistics {
+    total_stock_value: number;
+    total_cost_value: number;
+    below_min_stock_count: number;
+    above_max_stock_count: number;
+    zero_stock_count: number;
+    total_products: number;
+}
+
+export interface SalesStatistics {
+    total_sales: number;
+    today_sales: number;
+    current_month_sales: number;
+    last_month_sales: number;
+    top_product_by_value: {
+        name: string;
+        total_value: number;
+    };
+    top_product_by_quantity: {
+        name: string;
+        total_quantity: number;
+    };
+    total_transactions: number;
+    current_month_transactions: number;
+    last_month_transactions: number;
+    growth_rate: number;
+    average_order_value: number;
+    current_month_profit: number;
+    last_month_profit: number;
+    profit_margin_percentage: number;
+    current_week_sales: number;
+    last_week_sales: number;
+    week_over_week_growth: number;
+    ytd_sales: number;
+    top_5_products: Array<{
+        name: string;
+        total_value: number;
+        total_quantity: number;
+    }>;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -49,7 +90,43 @@ export class CompanyDataService {
      * Get paginated purchases for the authenticated company user.
      */
     getPurchases(page: number = 0, limit: number = 100, search?: string, startDate?: string, endDate?: string): Observable<CompanyDataResponse> {
-        let url = `/api/company-data/purchases?page=${page}&limit=${limit}`;
+        let url = `api/company-data/purchases?page=${page}&limit=${limit}`;
+        if (search) {
+            url += `&param=${encodeURIComponent(search)}`;
+        }
+        if (startDate) {
+            url += `&start_date=${startDate}`;
+        }
+        if (endDate) {
+            url += `&end_date=${endDate}`;
+        }
+        return this.http.get<CompanyDataResponse>(url);
+    }
+
+    /**
+     * Get product statistics for the authenticated company user.
+     */
+    getProductStatistics(): Observable<ProductStatistics> {
+        return this.http.get<ProductStatistics>('api/company-data/product-statistics');
+    }
+
+    /**
+     * Get sales statistics for the authenticated company user.
+     */
+    getSalesStatistics(startDate?: string, endDate?: string): Observable<SalesStatistics> {
+        let url = 'api/company-data/sales-statistics';
+        const params: string[] = [];
+        if (startDate) params.push(`start_date=${startDate}`);
+        if (endDate) params.push(`end_date=${endDate}`);
+        if (params.length > 0) url += `?${params.join('&')}`;
+        return this.http.get<SalesStatistics>(url);
+    }
+
+    /**
+     * Get sales details (individual items sold) for the authenticated company user.
+     */
+    getSalesDetails(page: number = 0, limit: number = 100, search?: string, startDate?: string, endDate?: string): Observable<CompanyDataResponse> {
+        let url = `api/company-data/sales-details?page=${page}&limit=${limit}`;
         if (search) {
             url += `&param=${encodeURIComponent(search)}`;
         }

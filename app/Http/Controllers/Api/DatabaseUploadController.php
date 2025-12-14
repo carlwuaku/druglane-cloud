@@ -78,16 +78,16 @@ class DatabaseUploadController extends Controller
         $validator = Validator::make($request->all(), [
             'upload_file' => 'required|file|mimes:zip|max:102400', // Max 100MB
             'company_id' => 'required|integer|exists:companies,id',
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'name' => 'nullable|string',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => '0',
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()->toArray(),
+                'errors' => implode(', ', $validator->errors()->all()),
             ], 422);
         }
 
@@ -178,7 +178,7 @@ class DatabaseUploadController extends Controller
             return response()->json([
                 'status' => '0',
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()->toArray(),
+                'errors' => implode(', ', $validator->errors()->all()),
             ], 422);
         }
 

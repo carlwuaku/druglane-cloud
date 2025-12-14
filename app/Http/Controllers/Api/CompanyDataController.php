@@ -97,12 +97,14 @@ class CompanyDataController extends Controller
             $page = (int) $request->query('page', 0);
             $limit = (int) $request->query('limit', 100);
             $search = $request->query('param');
+            $stockFilter = $request->query('stock_filter');
 
             $result = $this->queryService->getProducts(
                 $user->company_id,
                 $page,
                 $limit,
-                $search
+                $search,
+                $stockFilter
             );
 
             return response()->json($result);
@@ -326,6 +328,118 @@ class CompanyDataController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to retrieve purchases: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get product statistics for the authenticated user's company.
+     *
+     * @OA\Get(
+     *     path="/api/company-data/product-statistics",
+     *     tags={"Company Data"},
+     *     summary="Get product statistics",
+     *     description="Retrieve statistics about products including stock values and counts. Company users only.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="total_stock_value", type="number", format="float", example=125000.50, description="Total stock value based on selling price"),
+     *             @OA\Property(property="total_cost_value", type="number", format="float", example=87500.25, description="Total stock value based on cost price"),
+     *             @OA\Property(property="below_min_stock_count", type="integer", example=42, description="Number of products at or below minimum stock but not zero"),
+     *             @OA\Property(property="above_max_stock_count", type="integer", example=8, description="Number of products above maximum stock"),
+     *             @OA\Property(property="zero_stock_count", type="integer", example=15, description="Number of products with zero or negative stock"),
+     *             @OA\Property(property="total_products", type="integer", example=1247, description="Total number of products")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=403, description="No company associated"),
+     *     @OA\Response(response=500, description="Failed to retrieve statistics")
+     * )
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getProductStatistics(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user->company_id) {
+            return response()->json([
+                'message' => 'No company associated with this account',
+            ], 403);
+        }
+
+        try {
+            $statistics = $this->queryService->getProductStatistics($user->company_id);
+            return response()->json($statistics);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve product statistics: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get sales statistics for the authenticated user's company.
+     */
+    public function getSalesStatistics(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user->company_id) {
+            return response()->json([
+                'message' => 'No company associated with this account',
+            ], 403);
+        }
+
+        try {
+            $startDate = $request->query('start_date');
+            $endDate = $request->query('end_date');
+
+            $statistics = $this->queryService->getSalesStatistics($user->company_id, $startDate, $endDate);
+            return response()->json($statistics);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve sales statistics: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get sales details for the authenticated user's company.
+     */
+    public function getSalesDetails(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user->company_id) {
+            return response()->json([
+                'message' => 'No company associated with this account',
+            ], 403);
+        }
+
+        try {
+            $page = (int) $request->query('page', 0);
+            $limit = (int) $request->query('limit', 100);
+            $search = $request->query('param');
+            $startDate = $request->query('start_date');
+            $endDate = $request->query('end_date');
+
+            $result = $this->queryService->getSalesDetails(
+                $user->company_id,
+                $page,
+                $limit,
+                $search,
+                $startDate,
+                $endDate
+            );
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve sales details: ' . $e->getMessage(),
             ], 500);
         }
     }

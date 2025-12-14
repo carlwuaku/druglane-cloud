@@ -4,12 +4,12 @@ import { LoadDataListComponent } from '../../../../libs/components/load-data-lis
 import { PageContainerComponent } from '../../../../libs/components/page-container/page-container.component';
 
 @Component({
-    selector: 'app-purchases-list',
-    standalone: true,
-    imports: [CommonModule, LoadDataListComponent, PageContainerComponent],
-    templateUrl: './purchases-list.component.html',
-    styleUrl: './purchases-list.component.scss'
+  selector: 'app-sales-details',
+  standalone: true,
+  imports: [CommonModule, LoadDataListComponent, PageContainerComponent],
+  templateUrl: './sales-details.component.html',
+  styleUrl: './sales-details.component.scss'
 })
-export class PurchasesListComponent {
-    apiUrl = 'api/company-data/purchases';
+export class SalesDetailsComponent {
+  apiUrl = 'api/company-data/sales-details';
 }

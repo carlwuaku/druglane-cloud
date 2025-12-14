@@ -1,0 +1,6 @@
+<app-page-container [pageTitle]="'Sales Details'">
+    <app-load-data-list [url]="apiUrl" [preload]="true" [showPagination]="true" [showSearch]="true" [showExport]="true"
+        [showActions]="false" [rowSelection]="undefined" [listTitleField]="'code'" [showAllFilters]="true"
+        [emptyMessage]="'No sales details found'" [limit]="100" [useResponseFilters]="true">
+    </app-load-data-list>
+</app-page-container>
