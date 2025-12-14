@@ -443,4 +443,116 @@ class CompanyDataController extends Controller
             ], 500);
         }
     }
+
+    public function getPurchaseStatistics(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user->company_id) {
+            return response()->json([
+                'message' => 'No company associated with this account',
+            ], 403);
+        }
+
+        try {
+            $startDate = $request->query('start_date');
+            $endDate = $request->query('end_date');
+
+            $statistics = $this->queryService->getPurchaseStatistics(
+                $user->company_id,
+                $startDate,
+                $endDate
+            );
+
+            return response()->json($statistics);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve purchase statistics: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getPurchaseDetails(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user->company_id) {
+            return response()->json([
+                'message' => 'No company associated with this account',
+            ], 403);
+        }
+
+        try {
+            $page = (int) $request->query('page', 0);
+            $limit = (int) $request->query('limit', 100);
+            $search = $request->query('param');
+            $startDate = $request->query('start_date');
+            $endDate = $request->query('end_date');
+
+            $result = $this->queryService->getPurchaseDetails(
+                $user->company_id,
+                $page,
+                $limit,
+                $search,
+                $startDate,
+                $endDate
+            );
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve purchase details: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get database upload information for the authenticated user's company.
+     */
+    public function getDatabaseInfo(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user->company_id) {
+            return response()->json(['message' => 'No company associated with this account'], 403);
+        }
+
+        try {
+            $upload = \App\Models\CompanyDatabaseUpload::getLatestForCompany($user->company_id);
+
+            if (!$upload) {
+                return response()->json([
+                    'message' => 'No database upload found',
+                    'upload_date' => null,
+                    'file_size' => null,
+                    'original_filename' => null,
+                ]);
+            }
+
+            return response()->json([
+                'upload_date' => $upload->created_at->toIso8601String(),
+                'upload_date_formatted' => $upload->created_at->format('M d, Y h:i A'),
+                'upload_date_relative' => $upload->created_at->diffForHumans(),
+                'file_size' => $upload->file_size,
+                'file_size_formatted' => $this->formatBytes($upload->file_size),
+                'original_filename' => $upload->original_filename,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to retrieve database info: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Format bytes to human-readable format.
+     */
+    private function formatBytes(int $bytes, int $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+
+        return round($bytes, $precision) . ' ' . $units[$i];
+    }
 }

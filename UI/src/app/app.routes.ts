@@ -18,6 +18,13 @@ export const routes: Routes = [
         loadComponent: () => import('./core/pages/home/home.component').then(m => m.HomeComponent),
         resolve: { userData: userResolver, appSettings: appSettingsResolver },
     },
+    {
+        path: 'company-dashboard',
+        data: { title: 'Dashboard' },
+        canActivate: [authGuard],
+        loadComponent: () => import('./core/pages/company-dashboard/company-dashboard.component').then(m => m.CompanyDashboardComponent),
+        resolve: { userData: userResolver, appSettings: appSettingsResolver },
+    },
 
     {
         path: 'login',
@@ -110,6 +117,12 @@ export const routes: Routes = [
         data: { title: 'Purchases' },
         canActivate: [authGuard, companyUserGuard],
         loadComponent: () => import('./features/company-data/pages/purchases-list/purchases-list.component').then(m => m.PurchasesListComponent),
+    },
+    {
+        path: 'purchase-details',
+        data: { title: 'Purchase Details' },
+        canActivate: [authGuard, companyUserGuard],
+        loadComponent: () => import('./features/company-data/pages/purchase-details/purchase-details.component').then(m => m.PurchaseDetailsComponent),
     },
 
 ];

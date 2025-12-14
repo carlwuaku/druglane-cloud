@@ -650,14 +650,14 @@ class CompanyDatabaseQueryService
         $total = $this->executeCountQuery($companyId, $countQuery, $params);
 
         // Data query
-        $query = "SELECT sd.id, s.code, s.date, p.name as product_name, sd.quantity,
+        $query = "SELECT sd.id, s.code, s.date, s.created_on as date_time, p.name as product_name, sd.quantity,
                          sd.price, (sd.price * sd.quantity) as total_amount,
                          s.customer, s.payment_method
                   FROM sales_details sd
                   JOIN sales s ON sd.code = s.code
                   JOIN products p ON sd.product = p.id
                   $whereClause
-                  ORDER BY s.date DESC, s.code ASC
+                  ORDER BY s.created_on DESC, s.code ASC
                   LIMIT :limit OFFSET :offset";
 
         $params[':limit'] = $limit;
@@ -668,17 +668,290 @@ class CompanyDatabaseQueryService
         return [
             'data' => $data,
             'total' => $total,
-            'displayColumns' => ['code', 'date', 'product_name', 'quantity', 'price', 'total_amount', 'customer', 'payment_method'],
+            'displayColumns' => ['code', 'date_time', 'product_name', 'quantity', 'price', 'total_amount', 'customer', 'payment_method'],
             'columnLabels' => [
                 'id' => 'ID',
                 'code' => 'Sale Code',
                 'date' => 'Date',
+                'date_time' => 'Date & Time',
                 'product_name' => 'Product',
                 'quantity' => 'Quantity',
                 'price' => 'Unit Price',
                 'total_amount' => 'Total Amount',
                 'customer' => 'Customer',
                 'payment_method' => 'Payment Method',
+            ],
+            'columnFilters' => [
+                [
+                    'name' => 'start_date',
+                    'label' => 'Start Date',
+                    'type' => 'date',
+                    'value' => null,
+                    'required' => false,
+                ],
+                [
+                    'name' => 'end_date',
+                    'label' => 'End Date',
+                    'type' => 'date',
+                    'value' => null,
+                    'required' => false,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Get purchase statistics.
+     *
+     * @param int $companyId
+     * @param string|null $startDate
+     * @param string|null $endDate
+     * @return array
+     */
+    public function getPurchaseStatistics(int $companyId, ?string $startDate = null, ?string $endDate = null): array
+    {
+        try {
+            $params = [];
+            $whereClause = '';
+
+            // Build WHERE clause for date filtering
+            if ($startDate && $endDate) {
+                $whereClause = "WHERE p.date >= :start_date AND p.date <= :end_date";
+                $params[':start_date'] = $startDate;
+                $params[':end_date'] = $endDate;
+            }
+
+            // Total purchases amount for period
+            $totalPurchasesQuery = "SELECT COALESCE(SUM(pd.price * pd.quantity), 0) as total
+                                   FROM purchases p
+                                   JOIN purchase_details pd ON p.code = pd.code
+                                   $whereClause";
+            $totalPurchases = $this->executeQuery($companyId, $totalPurchasesQuery, $params);
+
+            // Today's purchases
+            $todayQuery = "SELECT COALESCE(SUM(pd.price * pd.quantity), 0) as total
+                          FROM purchases p
+                          JOIN purchase_details pd ON p.code = pd.code
+                          WHERE p.date = date('now')";
+            $todayPurchases = $this->executeQuery($companyId, $todayQuery);
+
+            // Current month purchases
+            $currentMonthQuery = "SELECT COALESCE(SUM(pd.price * pd.quantity), 0) as total
+                                 FROM purchases p
+                                 JOIN purchase_details pd ON p.code = pd.code
+                                 WHERE strftime('%Y-%m', p.date) = strftime('%Y-%m', 'now')";
+            $currentMonthPurchases = $this->executeQuery($companyId, $currentMonthQuery);
+
+            // Last month purchases
+            $lastMonthQuery = "SELECT COALESCE(SUM(pd.price * pd.quantity), 0) as total
+                              FROM purchases p
+                              JOIN purchase_details pd ON p.code = pd.code
+                              WHERE strftime('%Y-%m', p.date) = strftime('%Y-%m', 'now', '-1 month')";
+            $lastMonthPurchases = $this->executeQuery($companyId, $lastMonthQuery);
+
+            // Current week purchases
+            $currentWeekQuery = "SELECT COALESCE(SUM(pd.price * pd.quantity), 0) as total
+                                FROM purchases p
+                                JOIN purchase_details pd ON p.code = pd.code
+                                WHERE strftime('%Y-%W', p.date) = strftime('%Y-%W', 'now')";
+            $currentWeekPurchases = $this->executeQuery($companyId, $currentWeekQuery);
+
+            // Last week purchases
+            $lastWeekQuery = "SELECT COALESCE(SUM(pd.price * pd.quantity), 0) as total
+                             FROM purchases p
+                             JOIN purchase_details pd ON p.code = pd.code
+                             WHERE strftime('%Y-%W', p.date) = strftime('%Y-%W', 'now', '-7 days')";
+            $lastWeekPurchases = $this->executeQuery($companyId, $lastWeekQuery);
+
+            // Year to date purchases
+            $ytdQuery = "SELECT COALESCE(SUM(pd.price * pd.quantity), 0) as total
+                        FROM purchases p
+                        JOIN purchase_details pd ON p.code = pd.code
+                        WHERE strftime('%Y', p.date) = strftime('%Y', 'now')";
+            $ytdPurchases = $this->executeQuery($companyId, $ytdQuery);
+
+            // Total number of purchase transactions
+            $transactionsQuery = "SELECT COUNT(DISTINCT p.code) as total
+                                 FROM purchases p
+                                 $whereClause";
+            $transactions = $this->executeQuery($companyId, $transactionsQuery, $params);
+
+            // Current month transactions
+            $currentMonthTransactionsQuery = "SELECT COUNT(DISTINCT p.code) as total
+                                             FROM purchases p
+                                             WHERE strftime('%Y-%m', p.date) = strftime('%Y-%m', 'now')";
+            $currentMonthTransactions = $this->executeQuery($companyId, $currentMonthTransactionsQuery);
+
+            // Top product by purchase value
+            $topProductValueQuery = "SELECT pr.name, SUM(pd.price * pd.quantity) as total_value
+                                    FROM purchase_details pd
+                                    JOIN products pr ON pd.product = pr.id
+                                    JOIN purchases p ON pd.code = p.code
+                                    $whereClause
+                                    GROUP BY pd.product, pr.name
+                                    ORDER BY total_value DESC
+                                    LIMIT 1";
+            $topProductValue = $this->executeQuery($companyId, $topProductValueQuery, $params);
+
+            // Top product by quantity
+            $topProductQuantityQuery = "SELECT pr.name, SUM(pd.quantity) as total_quantity
+                                       FROM purchase_details pd
+                                       JOIN products pr ON pd.product = pr.id
+                                       JOIN purchases p ON pd.code = p.code
+                                       $whereClause
+                                       GROUP BY pd.product, pr.name
+                                       ORDER BY total_quantity DESC
+                                       LIMIT 1";
+            $topProductQuantity = $this->executeQuery($companyId, $topProductQuantityQuery, $params);
+
+            // Top 5 purchased products by value (current month)
+            $top5ProductsQuery = "SELECT pr.name, SUM(pd.price * pd.quantity) as total_value,
+                                        SUM(pd.quantity) as total_quantity
+                                 FROM purchase_details pd
+                                 JOIN products pr ON pd.product = pr.id
+                                 JOIN purchases p ON pd.code = p.code
+                                 WHERE strftime('%Y-%m', p.date) = strftime('%Y-%m', 'now')
+                                 GROUP BY pd.product, pr.name
+                                 ORDER BY total_value DESC
+                                 LIMIT 5";
+            $top5Products = $this->executeQuery($companyId, $top5ProductsQuery);
+
+            // Calculate metrics
+            $currentMonthPurchasesValue = $currentMonthPurchases[0]['total'] ?? 0;
+            $lastMonthPurchasesValue = $lastMonthPurchases[0]['total'] ?? 0;
+            $currentWeekPurchasesValue = $currentWeekPurchases[0]['total'] ?? 0;
+            $lastWeekPurchasesValue = $lastWeekPurchases[0]['total'] ?? 0;
+            $currentMonthTransactionsValue = $currentMonthTransactions[0]['total'] ?? 0;
+
+            // Calculate growth rate (current month vs last month)
+            $growthRate = 0;
+            if ($lastMonthPurchasesValue > 0) {
+                $growthRate = (($currentMonthPurchasesValue - $lastMonthPurchasesValue) / $lastMonthPurchasesValue) * 100;
+            }
+
+            // Calculate week-over-week growth
+            $weekOverWeekGrowth = 0;
+            if ($lastWeekPurchasesValue > 0) {
+                $weekOverWeekGrowth = (($currentWeekPurchasesValue - $lastWeekPurchasesValue) / $lastWeekPurchasesValue) * 100;
+            }
+
+            // Calculate average purchase value
+            $averagePurchaseValue = 0;
+            if ($currentMonthTransactionsValue > 0) {
+                $averagePurchaseValue = $currentMonthPurchasesValue / $currentMonthTransactionsValue;
+            }
+
+            return [
+                'total_purchases' => round($totalPurchases[0]['total'] ?? 0, 2),
+                'today_purchases' => round($todayPurchases[0]['total'] ?? 0, 2),
+                'current_month_purchases' => round($currentMonthPurchasesValue, 2),
+                'last_month_purchases' => round($lastMonthPurchasesValue, 2),
+                'current_week_purchases' => round($currentWeekPurchasesValue, 2),
+                'last_week_purchases' => round($lastWeekPurchasesValue, 2),
+                'ytd_purchases' => round($ytdPurchases[0]['total'] ?? 0, 2),
+                'total_transactions' => $transactions[0]['total'] ?? 0,
+                'current_month_transactions' => $currentMonthTransactionsValue,
+                'growth_rate' => round($growthRate, 2),
+                'week_over_week_growth' => round($weekOverWeekGrowth, 2),
+                'average_purchase_value' => round($averagePurchaseValue, 2),
+                'top_product_by_value' => [
+                    'name' => $topProductValue[0]['name'] ?? 'N/A',
+                    'total_value' => round($topProductValue[0]['total_value'] ?? 0, 2),
+                ],
+                'top_product_by_quantity' => [
+                    'name' => $topProductQuantity[0]['name'] ?? 'N/A',
+                    'total_quantity' => round($topProductQuantity[0]['total_quantity'] ?? 0, 2),
+                ],
+                'top_5_products' => array_map(function($product) {
+                    return [
+                        'name' => $product['name'],
+                        'total_value' => round($product['total_value'], 2),
+                        'total_quantity' => round($product['total_quantity'], 2),
+                    ];
+                }, $top5Products),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Failed to get purchase statistics', [
+                'company_id' => $companyId,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Get purchase details (individual items purchased).
+     *
+     * @param int $companyId
+     * @param int $page
+     * @param int $limit
+     * @param string|null $search
+     * @param string|null $startDate
+     * @param string|null $endDate
+     * @return array
+     */
+    public function getPurchaseDetails(int $companyId, int $page = 0, int $limit = 100, ?string $search = null, ?string $startDate = null, ?string $endDate = null): array
+    {
+        $offset = $page;
+        $params = [];
+        $whereClauses = [];
+
+        // Build WHERE clause for search
+        if ($search) {
+            $whereClauses[] = "(p.code LIKE :search OR pr.name LIKE :search)";
+            $params[':search'] = "%$search%";
+        }
+
+        // Build WHERE clause for date filtering
+        if ($startDate) {
+            $whereClauses[] = "p.date >= :start_date";
+            $params[':start_date'] = $startDate;
+        }
+        if ($endDate) {
+            $whereClauses[] = "p.date <= :end_date";
+            $params[':end_date'] = $endDate;
+        }
+
+        $whereClause = !empty($whereClauses) ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
+
+        // Count query
+        $countQuery = "SELECT COUNT(*) FROM purchase_details pd
+                      JOIN purchases p ON pd.code = p.code
+                      JOIN products pr ON pd.product = pr.id
+                      $whereClause";
+        $total = $this->executeCountQuery($companyId, $countQuery, $params);
+
+        // Data query
+        $query = "SELECT pd.id, p.code, p.date, p.created_on as date_time, pr.name as product_name, pd.quantity,
+                         pd.price, (pd.price * pd.quantity) as total_amount,
+                         pd.selling_price, pd.markup
+                  FROM purchase_details pd
+                  JOIN purchases p ON pd.code = p.code
+                  JOIN products pr ON pd.product = pr.id
+                  $whereClause
+                  ORDER BY p.created_on DESC, p.code ASC
+                  LIMIT :limit OFFSET :offset";
+
+        $params[':limit'] = $limit;
+        $params[':offset'] = $offset;
+
+        $data = $this->executeQuery($companyId, $query, $params);
+
+        return [
+            'data' => $data,
+            'total' => $total,
+            'displayColumns' => ['code', 'date_time', 'product_name', 'quantity', 'price', 'selling_price', 'markup', 'total_amount'],
+            'columnLabels' => [
+                'id' => 'ID',
+                'code' => 'Purchase Code',
+                'date' => 'Date',
+                'date_time' => 'Date & Time',
+                'product_name' => 'Product',
+                'quantity' => 'Quantity',
+                'price' => 'Cost Price',
+                'selling_price' => 'Selling Price',
+                'markup' => 'Markup %',
+                'total_amount' => 'Total Amount',
             ],
             'columnFilters' => [
                 [

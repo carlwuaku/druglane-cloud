@@ -78,5 +78,8 @@ Route::middleware(['auth:sanctum', 'active', 'license.active'])->group(function 
         Route::get('/product-statistics', [\App\Http\Controllers\Api\CompanyDataController::class, 'getProductStatistics']);
         Route::get('/sales-statistics', [\App\Http\Controllers\Api\CompanyDataController::class, 'getSalesStatistics']);
         Route::get('/sales-details', [\App\Http\Controllers\Api\CompanyDataController::class, 'getSalesDetails']);
+        Route::get('/purchase-statistics', [\App\Http\Controllers\Api\CompanyDataController::class, 'getPurchaseStatistics']);
+        Route::get('/purchase-details', [\App\Http\Controllers\Api\CompanyDataController::class, 'getPurchaseDetails']);
+        Route::get('/database-info', [\App\Http\Controllers\Api\CompanyDataController::class, 'getDatabaseInfo']);
     });
 });

@@ -62,18 +62,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        // Redirect users to their role-specific dashboard
+        // Redirect company users to their specific dashboard
         const currentUser = this.user();
-        if (currentUser) {
-            if (currentUser.isAdmin) {
-                this.router.navigate(['/admin-dashboard'], { replaceUrl: true });
-                return;
-            } else if (currentUser.isCompanyUser) {
-                this.router.navigate(['/company-dashboard'], { replaceUrl: true });
-                return;
-            }
+        if (currentUser?.isCompanyUser) {
+            this.router.navigate(['/company-dashboard'], { replaceUrl: true });
+            return;
         }
 
+        // Admin users stay on this dashboard component
         this.authService.getHomeMenu().pipe(takeUntil(this.destroy$)).subscribe(data => {
             this.menuItems.set(data.data.dashboardMenu);
             this.subtitles.set(data.data.subtitles);

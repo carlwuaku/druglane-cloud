@@ -14,9 +14,6 @@
                             Company: {{currentUser.company.name}}
                         </span>
                         }
-                        <span class="bg-white px-3 py-1.5 text-black rounded-md font-medium">
-                            Role: {{currentUser.role.display_name}}
-                        </span>
                     </div>
                 </div>
             </div>
@@ -26,95 +23,243 @@
 
     <!-- Dashboard Title -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
-        <h2 class="text-2xl font-semibold text-green-800 mb-2">Inventory Dashboard</h2>
-        <p class="text-gray-600">Real-time overview of your inventory and sales</p>
+        <div class="flex justify-between items-start flex-wrap gap-4">
+            <div>
+                <h2 class="text-2xl font-semibold text-green-800 mb-2">Business Dashboard</h2>
+                <p class="text-gray-600">Comprehensive overview of your business performance</p>
+            </div>
+            @if (databaseInfo(); as dbInfo) {
+            <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                <div class="flex items-center gap-2 mb-1">
+                    <mat-icon class="text-blue-600"
+                        style="font-size: 20px; width: 20px; height: 20px;">database</mat-icon>
+                    <span class="font-semibold text-blue-900 text-sm">Database Status</span>
+                </div>
+                @if (dbInfo.upload_date) {
+                <div class="text-xs text-gray-700">
+                    <div class="flex items-center gap-1">
+                        <mat-icon class="text-gray-500"
+                            style="font-size: 14px; width: 14px; height: 14px;">schedule</mat-icon>
+                        <span>Last Updated: <strong>{{dbInfo.upload_date_formatted}}</strong></span>
+                    </div>
+                    <div class="text-gray-600 mt-1">({{dbInfo.upload_date_relative}})</div>
+                    @if (dbInfo.file_size_formatted) {
+                    <div class="text-gray-500 mt-1">Size: {{dbInfo.file_size_formatted}}</div>
+                    }
+                </div>
+                } @else {
+                <div class="text-xs text-gray-600">No database uploaded yet</div>
+                }
+            </div>
+            }
+        </div>
     </div>
 
-    <!-- Tabs for different sections -->
-    <mat-tab-group class="bg-white rounded-xl shadow-sm" [dynamicHeight]="true">
-        <!-- Overview Tab -->
-        <mat-tab label="Overview">
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <app-stats-card [title]="'Total Products'" [count]="totalProducts()" [icon]="'inventory_2'"
-                        [url]="'/products'" [iconBackgroundColor]="'#2e7d32'" [loading]="loading()"
-                        [description]="'All products in inventory'">
-                    </app-stats-card>
+    <!-- Quick Overview -->
+    @if (!loading()) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <app-stats-card [title]="'Total Products'" [count]="productStats()!.total_products" [icon]="'inventory_2'"
+            [url]="'/products'" [iconBackgroundColor]="'#2e7d32'" [description]="'All products in inventory'">
+        </app-stats-card>
 
-                    <app-stats-card [title]="'Active Products'" [count]="activeProducts()" [icon]="'check_circle'"
-                        [url]="'/products'" [urlParams]="{status: 'active'}" [iconBackgroundColor]="'#43a047'"
-                        [loading]="loading()" [description]="'Currently available products'">
-                    </app-stats-card>
+        <app-stats-card [title]="'Today Sales'"
+            [count]="'GHS ' + salesStats()!.today_sales.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+            [icon]="'today'" [url]="'/sales'" [iconBackgroundColor]="'#1976d2'" [description]="'Sales for today'">
+        </app-stats-card>
 
-                    <app-stats-card [title]="'Today\'s Sales'" [count]="todaySales()" [icon]="'trending_up'"
-                        [url]="'/sales'" [iconBackgroundColor]="'#1976d2'" [loading]="loading()"
-                        [description]="'Sales transactions today'">
-                    </app-stats-card>
+        <app-stats-card [title]="'Today Purchases'"
+            [count]="'GHS ' + purchaseStats()!.today_purchases.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+            [icon]="'shopping_bag'" [url]="'/purchases'" [iconBackgroundColor]="'#f57c00'"
+            [description]="'Purchases for today'">
+        </app-stats-card>
 
-                    <app-stats-card [title]="'Out of Stock'" [count]="outOfStock()" [icon]="'remove_shopping_cart'"
-                        [url]="'/products'" [urlParams]="{status: 'out-of-stock'}" [iconBackgroundColor]="'#f57c00'"
-                        [loading]="loading()" [description]="'Products needing restock'">
-                    </app-stats-card>
+        <app-stats-card [title]="'Stock Value'"
+            [count]="'GHS ' + productStats()!.total_stock_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+            [icon]="'payments'" [url]="'/products'" [iconBackgroundColor]="'#00897b'"
+            [description]="'Total inventory value'">
+        </app-stats-card>
+    </div>
+    }
+
+    <!-- Sales Statistics Section -->
+    @if (salesStats()) {
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <mat-accordion>
+            <mat-expansion-panel [expanded]="true">
+                <mat-expansion-panel-header>
+                    <mat-panel-title class="flex items-center gap-2">
+                        <mat-icon class="text-green-700">shopping_cart</mat-icon>
+                        <span class="font-semibold text-lg">Sales Performance</span>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <div class="p-4">
+                    <!-- Period Sales -->
+                    <div class="mb-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Period Sales</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <app-stats-card
+                                [count]="'GHS ' + salesStats()!.current_month_sales.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                [title]="'Current Month'" [description]="'Sales this month'" [icon]="'calendar_month'"
+                                [url]="'/sales'" [iconBackgroundColor]="'#2e7d32'">
+                            </app-stats-card>
+
+                            <app-stats-card
+                                [count]="'GHS ' + salesStats()!.current_week_sales.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                [title]="'This Week'" [description]="'Current week sales'" [icon]="'date_range'"
+                                [url]="'/sales'" [iconBackgroundColor]="'#1976d2'">
+                            </app-stats-card>
+
+                            <app-stats-card
+                                [count]="(salesStats()!.growth_rate >= 0 ? '+' : '') + salesStats()!.growth_rate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%'"
+                                [title]="'Month Growth'" [description]="'vs Last Month'"
+                                [icon]="salesStats()!.growth_rate >= 0 ? 'trending_up' : 'trending_down'"
+                                [iconBackgroundColor]="salesStats()!.growth_rate >= 0 ? '#2e7d32' : '#d32f2f'"
+                                [tooltip]="'Calculated as: ((Current Month Sales - Last Month Sales) / Last Month Sales) × 100'">
+                            </app-stats-card>
+
+                            <app-stats-card
+                                [count]="'GHS ' + salesStats()!.current_month_profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                [title]="'Month Profit'" [description]="'Net profit this month'"
+                                [icon]="'account_balance_wallet'" [iconBackgroundColor]="'#00897b'"
+                                [tooltip]="'Calculated as: Total Sales Revenue - Total Cost of Goods Sold for current month'">
+                            </app-stats-card>
+                        </div>
+                    </div>
+
+                    <!-- Top Selling Product -->
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Top Performer</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <app-stats-card
+                                [count]="'GHS ' + salesStats()!.top_product_by_value.total_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                [title]="'Highest by Value'" [description]="salesStats()!.top_product_by_value.name"
+                                [icon]="'attach_money'" [iconBackgroundColor]="'#00897b'">
+                            </app-stats-card>
+
+                            <app-stats-card
+                                [count]="salesStats()!.top_product_by_quantity.total_quantity.toLocaleString('en-US')"
+                                [title]="'Highest by Quantity'"
+                                [description]="salesStats()!.top_product_by_quantity.name" [icon]="'shopping_cart'"
+                                [iconBackgroundColor]="'#d32f2f'">
+                            </app-stats-card>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </mat-tab>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+    }
 
-        <!-- Stock Value Tab -->
-        <mat-tab label="Stock Value">
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <app-stats-card [title]="'Total Stock Value (Selling Price)'"
-                        [count]="'GHS ' + totalStockValue().toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
-                        [icon]="'payments'" [url]="'/products'" [iconBackgroundColor]="'#2e7d32'" [loading]="loading()"
-                        [description]="'Total value at selling price'">
-                    </app-stats-card>
+    <!-- Purchase Statistics Section -->
+    @if (purchaseStats()) {
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <mat-accordion>
+            <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                    <mat-panel-title class="flex items-center gap-2">
+                        <mat-icon class="text-orange-700">shopping_bag</mat-icon>
+                        <span class="font-semibold text-lg">Purchase Performance</span>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
 
-                    <app-stats-card [title]="'Total Stock Value (Cost Price)'"
-                        [count]="'GHS ' + totalCostValue().toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
-                        [icon]="'account_balance_wallet'" [url]="'/products'" [iconBackgroundColor]="'#1976d2'"
-                        [loading]="loading()" [description]="'Total value at cost price'">
-                    </app-stats-card>
+                <div class="p-4">
+                    <!-- Period Purchases -->
+                    <div class="mb-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Period Purchases
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <app-stats-card
+                                [count]="'GHS ' + purchaseStats()!.current_month_purchases.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                [title]="'Current Month'" [description]="'Purchases this month'"
+                                [icon]="'calendar_month'" [url]="'/purchases'" [iconBackgroundColor]="'#f57c00'">
+                            </app-stats-card>
+
+                            <app-stats-card
+                                [count]="'GHS ' + purchaseStats()!.current_week_purchases.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                [title]="'This Week'" [description]="'Current week purchases'" [icon]="'date_range'"
+                                [url]="'/purchases'" [iconBackgroundColor]="'#1976d2'">
+                            </app-stats-card>
+
+                            <app-stats-card
+                                [count]="(purchaseStats()!.growth_rate >= 0 ? '+' : '') + purchaseStats()!.growth_rate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%'"
+                                [title]="'Month Growth'" [description]="'vs Last Month'"
+                                [icon]="purchaseStats()!.growth_rate >= 0 ? 'trending_up' : 'trending_down'"
+                                [iconBackgroundColor]="purchaseStats()!.growth_rate >= 0 ? '#2e7d32' : '#d32f2f'"
+                                [tooltip]="'Calculated as: ((Current Month Purchases - Last Month Purchases) / Last Month Purchases) × 100'">
+                            </app-stats-card>
+
+                            <app-stats-card
+                                [count]="'GHS ' + purchaseStats()!.average_purchase_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                [title]="'Avg Purchase Value'" [description]="'Current month average'"
+                                [icon]="'receipt'" [iconBackgroundColor]="'#1976d2'"
+                                [tooltip]="'Calculated as: Total Current Month Purchases / Number of Purchase Transactions'">
+                            </app-stats-card>
+                        </div>
+                    </div>
+
+                    <!-- Top Purchased Product -->
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Most Purchased</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <app-stats-card
+                                [count]="'GHS ' + purchaseStats()!.top_product_by_value.total_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                [title]="'Highest by Value'" [description]="purchaseStats()!.top_product_by_value.name"
+                                [icon]="'attach_money'" [iconBackgroundColor]="'#00897b'">
+                            </app-stats-card>
+
+                            <app-stats-card
+                                [count]="purchaseStats()!.top_product_by_quantity.total_quantity.toLocaleString('en-US')"
+                                [title]="'Highest by Quantity'"
+                                [description]="purchaseStats()!.top_product_by_quantity.name" [icon]="'shopping_cart'"
+                                [iconBackgroundColor]="'#d32f2f'">
+                            </app-stats-card>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </mat-tab>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+    }
 
-        <!-- Stock Alerts Tab -->
-        <mat-tab label="Stock Alerts">
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <app-stats-card [title]="'Nearing Min Stock'" [count]="nearingMinStock()" [icon]="'warning'"
-                        [url]="'/products'" [urlParams]="{status: 'low-stock'}" [iconBackgroundColor]="'#ff9800'"
-                        [loading]="loading()" [description]="'Products below minimum threshold'">
-                    </app-stats-card>
+    <!-- Inventory Statistics Section -->
+    @if (productStats()) {
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <mat-accordion>
+            <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                    <mat-panel-title class="flex items-center gap-2">
+                        <mat-icon class="text-blue-700">inventory</mat-icon>
+                        <span class="font-semibold text-lg">Inventory Status</span>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
 
-                    <app-stats-card [title]="'Out of Stock'" [count]="outOfStock()" [icon]="'remove_shopping_cart'"
-                        [url]="'/products'" [urlParams]="{status: 'out-of-stock'}" [iconBackgroundColor]="'#f44336'"
-                        [loading]="loading()" [description]="'Zero quantity products'">
-                    </app-stats-card>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <app-stats-card [title]="'Out of Stock'" [count]="productStats()!.zero_stock_count"
+                            [icon]="'remove_shopping_cart'" [url]="'/products'" [iconBackgroundColor]="'#f44336'"
+                            [description]="'Zero quantity products'">
+                        </app-stats-card>
 
-                    <app-stats-card [title]="'Exceeding Max Stock'" [count]="exceedingMaxStock()" [icon]="'inventory'"
-                        [url]="'/products'" [urlParams]="{status: 'overstock'}" [iconBackgroundColor]="'#7b1fa2'"
-                        [loading]="loading()" [description]="'Products above maximum threshold'">
-                    </app-stats-card>
+                        <app-stats-card [title]="'Below Min Stock'" [count]="productStats()!.below_min_stock_count"
+                            [icon]="'warning'" [url]="'/products'" [iconBackgroundColor]="'#ff9800'"
+                            [description]="'Products below minimum threshold'">
+                        </app-stats-card>
+
+                        <app-stats-card [title]="'Above Max Stock'" [count]="productStats()!.above_max_stock_count"
+                            [icon]="'inventory'" [url]="'/products'" [iconBackgroundColor]="'#7b1fa2'"
+                            [description]="'Products above maximum threshold'">
+                        </app-stats-card>
+                    </div>
                 </div>
-            </div>
-        </mat-tab>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+    }
 
-        <!-- Expiry Alerts Tab -->
-        <mat-tab label="Expiry Alerts">
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <app-stats-card [title]="'Expired Products'" [count]="expiredProducts()" [icon]="'error_outline'"
-                        [url]="'/products'" [urlParams]="{status: 'expired'}" [iconBackgroundColor]="'#d32f2f'"
-                        [loading]="loading()" [description]="'Products past expiry date'">
-                    </app-stats-card>
-
-                    <app-stats-card [title]="'Expiring Next Month'" [count]="expiringNextMonth()" [icon]="'schedule'"
-                        [url]="'/products'" [urlParams]="{status: 'expiring-soon'}" [iconBackgroundColor]="'#f57c00'"
-                        [loading]="loading()" [description]="'Products expiring within 30 days'">
-                    </app-stats-card>
-                </div>
-            </div>
-        </mat-tab>
-    </mat-tab-group>
+    @if (loading()) {
+    <div class="flex justify-center items-center py-12">
+        <p class="text-gray-500">Loading dashboard statistics...</p>
+    </div>
+    }
 </div>

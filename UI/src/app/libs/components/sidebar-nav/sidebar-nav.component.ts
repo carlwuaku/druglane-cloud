@@ -142,7 +142,15 @@ export class SidebarNavComponent implements OnInit {
                     icon: 'inventory_2',
                     options: [],
                     permissions: [],
-                    actions: [],
+                    actions: [
+                        {
+                            type: 'link',
+                            label: 'All Products',
+                            icon: 'list',
+                            url: '/products',
+                            urlParams: {}
+                        }
+                    ],
                     alerts: [],
                     dataPoints: []
                 },
@@ -155,7 +163,22 @@ export class SidebarNavComponent implements OnInit {
                     icon: 'shopping_cart',
                     options: [],
                     permissions: [],
-                    actions: [],
+                    actions: [
+                        {
+                            type: 'link',
+                            label: 'Sales Summary',
+                            icon: 'receipt_long',
+                            url: '/sales',
+                            urlParams: {}
+                        },
+                        {
+                            type: 'link',
+                            label: 'Sales Details',
+                            icon: 'list_alt',
+                            url: '/sales-details',
+                            urlParams: {}
+                        }
+                    ],
                     alerts: [],
                     dataPoints: []
                 },
@@ -168,7 +191,22 @@ export class SidebarNavComponent implements OnInit {
                     icon: 'shopping_bag',
                     options: [],
                     permissions: [],
-                    actions: [],
+                    actions: [
+                        {
+                            type: 'link',
+                            label: 'Purchase Summary',
+                            icon: 'receipt_long',
+                            url: '/purchases',
+                            urlParams: {}
+                        },
+                        {
+                            type: 'link',
+                            label: 'Purchase Details',
+                            icon: 'list_alt',
+                            url: '/purchase-details',
+                            urlParams: {}
+                        }
+                    ],
                     alerts: [],
                     dataPoints: []
                 }

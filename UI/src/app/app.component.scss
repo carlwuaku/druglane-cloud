@@ -33,8 +33,10 @@ h1.app-name {
 
 // Sidebar
 ::ng-deep .app-sidenav {
-  width: 270px;
+  width: 250px;
+  max-width: 250px;
   border-right: none;
+  border-radius: 0 !important;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
 }
 

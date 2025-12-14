@@ -1,6 +1,6 @@
 @if (url()) {
 <a [routerLink]="url()" [queryParams]="urlParams()" class="stats-link">
-    <mat-card class="stats-card">
+    <mat-card class="stats-card" [matTooltip]="tooltip() || ''" matTooltipPosition="above" [matTooltipDisabled]="!tooltip()">
         <div class="stats-card-content">
             <!-- Icon Section -->
             <div class="icon-container" [style.background-color]="iconBackgroundColor()">
@@ -16,7 +16,12 @@
                     <span class="count-value">{{count()}}</span>
                     }
                 </div>
-                <div class="stats-title">{{title()}}</div>
+                <div class="stats-title">
+                    {{title()}}
+                    @if (tooltip()) {
+                        <mat-icon class="info-icon">info_outline</mat-icon>
+                    }
+                </div>
                 @if (description()) {
                 <div class="stats-description">{{description()}}</div>
                 }
@@ -25,7 +30,7 @@
     </mat-card>
 </a>
 } @else {
-<mat-card class="stats-card">
+<mat-card class="stats-card" [matTooltip]="tooltip() || ''" matTooltipPosition="above" [matTooltipDisabled]="!tooltip()">
     <div class="stats-card-content">
         <!-- Icon Section -->
         <div class="icon-container" [style.background-color]="iconBackgroundColor()">
@@ -41,7 +46,12 @@
                 <span class="count-value">{{count()}}</span>
                 }
             </div>
-            <div class="stats-title">{{title()}}</div>
+            <div class="stats-title">
+                {{title()}}
+                @if (tooltip()) {
+                    <mat-icon class="info-icon">info_outline</mat-icon>
+                }
+            </div>
             @if (description()) {
             <div class="stats-description">{{description()}}</div>
             }

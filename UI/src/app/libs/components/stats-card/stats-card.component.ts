@@ -2,6 +2,7 @@ import { Component, input } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { Params } from '@angular/router';
 
@@ -12,7 +13,8 @@ import { Params } from '@angular/router';
         CommonModule,
         RouterModule,
         MatCardModule,
-        MatIconModule
+        MatIconModule,
+        MatTooltipModule
     ],
     templateUrl: './stats-card.component.html',
     styleUrl: './stats-card.component.scss'
@@ -25,6 +27,7 @@ export class StatsCardComponent {
 
     // Optional inputs
     description = input<string>();
+    tooltip = input<string>(); // Explanation tooltip
     url = input<string>();
     urlParams = input<Params>();
     iconBackgroundColor = input<string>('#2e7d32'); // Default green

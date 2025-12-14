@@ -233,7 +233,7 @@ export class LoginComponent {
         // Store token and redirect
         localStorage.setItem(LOCAL_USER_TOKEN, response.token);
         this.authService.isLoggedIn$.next(true);
-        this.router.navigate(['/home']);
+        this.router.navigate(['/dashboard']);
         // Show success message
         this.notify.successNotification('Login successful! Welcome back.');
 

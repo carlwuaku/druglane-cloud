@@ -268,4 +268,10 @@
 
 .mat-drawer {
     width: 250px !important;
+    max-width: 250px !important;
+    border-radius: 0 !important;
+}
+
+::ng-deep .mat-drawer-inner-container {
+    border-radius: 0 !important;
 }
