@@ -17,6 +17,9 @@ export interface ProductStatistics {
     above_max_stock_count: number;
     zero_stock_count: number;
     total_products: number;
+    expired_with_stock_count: number;
+    expiring_this_month_count: number;
+    expiring_next_month_count: number;
 }
 
 export interface SalesStatistics {
@@ -44,6 +47,7 @@ export interface SalesStatistics {
     last_week_sales: number;
     week_over_week_growth: number;
     ytd_sales: number;
+    filtered_period_profit: number;
     top_5_products: Array<{
         name: string;
         total_value: number;

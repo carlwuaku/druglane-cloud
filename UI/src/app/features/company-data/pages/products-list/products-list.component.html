@@ -75,6 +75,45 @@
                     </div>
                 </div>
 
+                <!-- Product Expiry Section -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                        <mat-icon class="mr-2 text-red-600">event_busy</mat-icon>
+                        Product Expiry Status (Click to filter)
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div (click)="filterProducts('expired_with_stock')"
+                             [class.ring-4]="isFilterActive('expired_with_stock')"
+                             [class.ring-red-600]="isFilterActive('expired_with_stock')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Expired (In Stock)'" [count]="stats.expired_with_stock_count"
+                                [icon]="'dangerous'" [iconBackgroundColor]="'#d32f2f'" [loading]="loading()"
+                                [description]="'Products already expired with stock'">
+                            </app-stats-card>
+                        </div>
+
+                        <div (click)="filterProducts('expiring_this_month')"
+                             [class.ring-4]="isFilterActive('expiring_this_month')"
+                             [class.ring-orange-500]="isFilterActive('expiring_this_month')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Expiring This Month'" [count]="stats.expiring_this_month_count"
+                                [icon]="'event'" [iconBackgroundColor]="'#ff9800'" [loading]="loading()"
+                                [description]="'Products expiring this month'">
+                            </app-stats-card>
+                        </div>
+
+                        <div (click)="filterProducts('expiring_next_month')"
+                             [class.ring-4]="isFilterActive('expiring_next_month')"
+                             [class.ring-yellow-500]="isFilterActive('expiring_next_month')"
+                             class="cursor-pointer">
+                            <app-stats-card [title]="'Expiring Next Month'" [count]="stats.expiring_next_month_count"
+                                [icon]="'event_note'" [iconBackgroundColor]="'#ffa726'" [loading]="loading()"
+                                [description]="'Products expiring next month'">
+                            </app-stats-card>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Overview Section -->
                 <div>
                     <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center justify-between">

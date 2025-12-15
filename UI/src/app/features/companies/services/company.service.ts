@@ -15,6 +15,24 @@ export interface CompanyResponse {
     data: Company;
 }
 
+export interface AdminStatistics {
+    total_companies: number;
+    active_companies: number;
+    inactive_companies: number;
+    expired_companies: number;
+    expiring_soon: number;
+    total_company_users: number;
+    recently_active_users: number;
+    inactive_users: number;
+    no_backup_last_week: number;
+    no_backup_last_month: number;
+    no_backup_last_year: number;
+    never_uploaded: number;
+    recent_uploads: number;
+    total_storage_bytes: number;
+    total_storage_formatted: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -22,10 +40,26 @@ export class CompanyService {
     private httpService = inject(HttpService);
 
     /**
-     * Get all companies with pagination
+     * Get all companies with pagination and filters
      */
-    getCompanies(page: number = 1, perPage: number = 15): Observable<CompanyListResponse> {
-        return this.httpService.get<CompanyListResponse>(`api/companies?page=${page}&per_page=${perPage}`);
+    getCompanies(page: number = 1, perPage: number = 15, filters?: {
+        search?: string;
+        status?: string;
+        backup_filter?: string;
+    }): Observable<CompanyListResponse> {
+        let url = `api/companies?page=${page}&per_page=${perPage}`;
+
+        if (filters?.search) {
+            url += `&search=${encodeURIComponent(filters.search)}`;
+        }
+        if (filters?.status) {
+            url += `&status=${filters.status}`;
+        }
+        if (filters?.backup_filter) {
+            url += `&backup_filter=${filters.backup_filter}`;
+        }
+
+        return this.httpService.get<CompanyListResponse>(url);
     }
 
     /**
@@ -75,5 +109,12 @@ export class CompanyService {
      */
     renewLicense(id: number, data: { license_expires_at: string }): Observable<Company> {
         return this.httpService.post<Company>(`api/companies/${id}/renew-license`, data);
+    }
+
+    /**
+     * Get admin dashboard statistics
+     */
+    getAdminStatistics(): Observable<AdminStatistics> {
+        return this.httpService.get<AdminStatistics>('api/admin/statistics');
     }
 }

@@ -115,6 +115,15 @@ class CompanyDatabaseQueryService
                 case 'zero':
                     $whereClauses[] = "(current_stock <= 0)";
                     break;
+                case 'expired_with_stock':
+                    $whereClauses[] = "(current_stock > 0 AND expiry IS NOT NULL AND expiry != '' AND date(expiry) < date('now'))";
+                    break;
+                case 'expiring_this_month':
+                    $whereClauses[] = "(current_stock > 0 AND expiry IS NOT NULL AND expiry != '' AND date(expiry) >= date('now') AND date(expiry) < date('now', 'start of month', '+1 month'))";
+                    break;
+                case 'expiring_next_month':
+                    $whereClauses[] = "(current_stock > 0 AND expiry IS NOT NULL AND expiry != '' AND date(expiry) >= date('now', 'start of month', '+1 month') AND date(expiry) < date('now', 'start of month', '+2 months'))";
+                    break;
                 case 'all':
                     // No additional filter for 'all'
                     break;
@@ -377,6 +386,18 @@ class CompanyDatabaseQueryService
             $totalProductsQuery = "SELECT COUNT(*) as count FROM products";
             $totalProducts = $this->executeCountQuery($companyId, $totalProductsQuery);
 
+            // Products that have expired and still have stock
+            $expiredWithStockQuery = "SELECT COUNT(*) as count FROM products WHERE current_stock > 0 AND expiry IS NOT NULL AND expiry != '' AND date(expiry) < date('now')";
+            $expiredWithStock = $this->executeCountQuery($companyId, $expiredWithStockQuery);
+
+            // Products expiring this month and have stock
+            $expiringThisMonthQuery = "SELECT COUNT(*) as count FROM products WHERE current_stock > 0 AND expiry IS NOT NULL AND expiry != '' AND date(expiry) >= date('now') AND date(expiry) < date('now', 'start of month', '+1 month')";
+            $expiringThisMonth = $this->executeCountQuery($companyId, $expiringThisMonthQuery);
+
+            // Products expiring next month and have stock
+            $expiringNextMonthQuery = "SELECT COUNT(*) as count FROM products WHERE current_stock > 0 AND expiry IS NOT NULL AND expiry != '' AND date(expiry) >= date('now', 'start of month', '+1 month') AND date(expiry) < date('now', 'start of month', '+2 months')";
+            $expiringNextMonth = $this->executeCountQuery($companyId, $expiringNextMonthQuery);
+
             return [
                 'total_stock_value' => round($totalStockValue[0]['total'] ?? 0, 2),
                 'total_cost_value' => round($totalCostValue[0]['total'] ?? 0, 2),
@@ -384,6 +405,9 @@ class CompanyDatabaseQueryService
                 'above_max_stock_count' => $aboveMaxStock,
                 'zero_stock_count' => $zeroStock,
                 'total_products' => $totalProducts,
+                'expired_with_stock_count' => $expiredWithStock,
+                'expiring_this_month_count' => $expiringThisMonth,
+                'expiring_next_month_count' => $expiringNextMonth,
             ];
         } catch (\Exception $e) {
             Log::error('Failed to get product statistics', [
@@ -483,6 +507,14 @@ class CompanyDatabaseQueryService
                                           WHERE strftime('%Y-%m', s.date) = strftime('%Y-%m', 'now', '-1 month')";
             $lastMonthTransactions = $this->executeQuery($companyId, $lastMonthTransactionsQuery);
 
+            // Filtered period profit (if date range is provided)
+            $filteredProfitQuery = "SELECT COALESCE(SUM((sd.price - p.cost_price) * sd.quantity), 0) as total
+                                   FROM sales s
+                                   JOIN sales_details sd ON s.code = sd.code
+                                   JOIN products p ON sd.product = p.id
+                                   $whereClause";
+            $filteredProfit = $this->executeQuery($companyId, $filteredProfitQuery, $params);
+
             // Total profit calculation (sales price - cost price)
             $currentMonthProfitQuery = "SELECT COALESCE(SUM((sd.price - p.cost_price) * sd.quantity), 0) as total
                                        FROM sales s
@@ -545,17 +577,30 @@ class CompanyDatabaseQueryService
                         WHERE strftime('%Y', s.date) = strftime('%Y', 'now')";
             $ytdSales = $this->executeQuery($companyId, $ytdQuery);
 
-            // Top 5 best selling products by value
-            $top5ProductsQuery = "SELECT p.name, SUM(sd.price * sd.quantity) as total_value,
-                                        SUM(sd.quantity) as total_quantity
-                                 FROM sales_details sd
-                                 JOIN products p ON sd.product = p.id
-                                 JOIN sales s ON sd.code = s.code
-                                 WHERE strftime('%Y-%m', s.date) = strftime('%Y-%m', 'now')
-                                 GROUP BY sd.product, p.name
-                                 ORDER BY total_value DESC
-                                 LIMIT 5";
-            $top5Products = $this->executeQuery($companyId, $top5ProductsQuery);
+            // Top 5 best selling products - use filtered query if dates provided, otherwise current month
+            if ($startDate && $endDate) {
+                $top5ProductsQuery = "SELECT p.name, SUM(sd.price * sd.quantity) as total_value,
+                                            SUM(sd.quantity) as total_quantity
+                                     FROM sales_details sd
+                                     JOIN products p ON sd.product = p.id
+                                     JOIN sales s ON sd.code = s.code
+                                     $whereClause
+                                     GROUP BY sd.product, p.name
+                                     ORDER BY total_value DESC
+                                     LIMIT 5";
+                $top5Products = $this->executeQuery($companyId, $top5ProductsQuery, $params);
+            } else {
+                $top5ProductsQuery = "SELECT p.name, SUM(sd.price * sd.quantity) as total_value,
+                                            SUM(sd.quantity) as total_quantity
+                                     FROM sales_details sd
+                                     JOIN products p ON sd.product = p.id
+                                     JOIN sales s ON sd.code = s.code
+                                     WHERE strftime('%Y-%m', s.date) = strftime('%Y-%m', 'now')
+                                     GROUP BY sd.product, p.name
+                                     ORDER BY total_value DESC
+                                     LIMIT 5";
+                $top5Products = $this->executeQuery($companyId, $top5ProductsQuery);
+            }
 
             // Calculate week-over-week growth
             $currentWeekSalesValue = $currentWeekSales[0]['total'] ?? 0;
@@ -590,6 +635,7 @@ class CompanyDatabaseQueryService
                 'last_week_sales' => round($lastWeekSalesValue, 2),
                 'week_over_week_growth' => round($weekOverWeekGrowth, 2),
                 'ytd_sales' => round($ytdSales[0]['total'] ?? 0, 2),
+                'filtered_period_profit' => round($filteredProfit[0]['total'] ?? 0, 2),
                 'top_5_products' => array_map(function($product) {
                     return [
                         'name' => $product['name'],

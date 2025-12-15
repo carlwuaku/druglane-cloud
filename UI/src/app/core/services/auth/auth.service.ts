@@ -92,6 +92,35 @@ export class AuthService {
         return localStorage.getItem(LOCAL_USER_TOKEN);
     }
 
+    /**
+     * Send password reset link to email
+     */
+    sendPasswordResetLink(email: string): Observable<{ message: string }> {
+        return this.httpService.post<{ message: string }>('api/password/forgot', { email });
+    }
+
+    /**
+     * Reset password with token
+     */
+    resetPassword(token: string, email: string, password: string, password_confirmation: string): Observable<{ message: string }> {
+        return this.httpService.post<{ message: string }>('api/password/reset', {
+            token,
+            email,
+            password,
+            password_confirmation
+        });
+    }
+
+    /**
+     * Verify if password reset token is valid
+     */
+    verifyResetToken(token: string, email: string): Observable<{ valid: boolean, message: string }> {
+        return this.httpService.post<{ valid: boolean, message: string }>('api/password/verify-token', {
+            token,
+            email
+        });
+    }
+
     getHomeMenu(): Observable<{ data: { dashboardMenu: DashboardItem[], subtitles: HomeSubtitle[], alerts: MenuAlert[] } }> {
         return this.getUser().pipe(
             map(user => {

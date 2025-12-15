@@ -13,10 +13,14 @@ import { AppSettings } from '../../../libs/types/AppSettings.interface';
 import { MatIconModule } from '@angular/material/icon';
 import { AlertComponent } from "../../../libs/components/alert/alert.component";
 import { toSignal } from '@angular/core/rxjs-interop';
+import { CompanyService, AdminStatistics } from '../../../features/companies/services/company.service';
+import { StatsCardComponent } from '../../../libs/components/stats-card/stats-card.component';
+import { CommonModule } from '@angular/common';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
     selector: 'app-home',
-    imports: [MatButtonModule, MatCardModule, RouterModule, MatIconModule, AlertComponent,],
+    imports: [CommonModule, MatButtonModule, MatCardModule, RouterModule, MatIconModule, AlertComponent, StatsCardComponent, MatExpansionModule],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
@@ -25,8 +29,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     destroy$: Subject<boolean> = new Subject();
     subtitles = signal<HomeSubtitle[]>([]);
     alerts = signal<MenuAlert[]>([]);
+    statistics = signal<AdminStatistics | null>(null);
+    loading = signal<boolean>(true);
+
     private appService = inject(AppService);
     private authService = inject(AuthService);
+    private companyService = inject(CompanyService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private data = toSignal(this.route.data);
@@ -74,6 +82,23 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.menuItems.set(data.data.dashboardMenu);
             this.subtitles.set(data.data.subtitles);
             this.alerts.set(data.data.alerts);
-        })
+        });
+
+        // Load admin statistics
+        this.loadStatistics();
+    }
+
+    loadStatistics(): void {
+        this.loading.set(true);
+        this.companyService.getAdminStatistics().pipe(takeUntil(this.destroy$)).subscribe({
+            next: (stats) => {
+                this.statistics.set(stats);
+                this.loading.set(false);
+            },
+            error: (error) => {
+                console.error('Failed to load admin statistics', error);
+                this.loading.set(false);
+            }
+        });
     }
 }

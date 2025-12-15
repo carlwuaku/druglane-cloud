@@ -32,6 +32,18 @@ export const routes: Routes = [
         loadComponent: () => import('./core/pages/login/login.component').then(m => m.LoginComponent),
         canActivate: [],
     },
+    {
+        path: 'forgot-password',
+        data: { title: 'Forgot Password' },
+        loadComponent: () => import('./core/pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+        canActivate: [],
+    },
+    {
+        path: 'reset-password',
+        data: { title: 'Reset Password' },
+        loadComponent: () => import('./core/pages/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+        canActivate: [],
+    },
 
     {
         path: 'activate',

@@ -524,6 +524,12 @@ export class LoadDataListComponent implements OnInit, AfterViewInit, OnDestroy, 
     if (typeof params === 'string' || Array.isArray(params)) {
       this.onFilterSubmitted(params as any);
     }
+
+    // Reload data automatically for both "filter" and "emit" types
+    // For "emit" type, the parent component can handle additional logic via onFilterSubmitted callback
+    this.offset = 0;
+    this.currentPage = 1;
+    this.getData();
   }
 
   /**

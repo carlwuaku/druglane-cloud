@@ -1,32 +1,30 @@
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-4">
+    <!-- Welcome Banner -->
     <section class="homeBanner rounded-lg">
-        <div class=" text-white">
+        <div class="text-white">
             @if (user(); as currentUser) {
             <div class="flex gap-2 items-start flex-wrap">
                 <div class="flex-auto">
-                    <h3 class="margins">
+                    <h3 class="text-3xl font-bold mb-4">
                         Welcome, {{currentUser.displayName}}!
                     </h3>
-                    <div class="flex gap-1  flex-wrap">
+                    <div class="flex gap-2 flex-wrap">
                         @for (subtitle of subtitles(); track $index) {
-                        <span class="bg-white p-1.5 text-black rounded-md ">{{subtitle.label}}:
+                        <span class="bg-white px-3 py-1.5 text-black rounded-md font-medium">{{subtitle.label}}:
                             {{subtitle.template}}</span>
                         }
                         @if(currentUser.company){
-                        <span class="bg-white p-1.5 text-black rounded-md ">
+                        <span class="bg-white px-3 py-1.5 text-black rounded-md font-medium">
                             Company: {{currentUser.company.name}}
                         </span>
                         }
-                        <span class="bg-white p-1.5 text-black rounded-md ">
+                        <span class="bg-white px-3 py-1.5 text-black rounded-md font-medium">
                             Role: {{currentUser.role.display_name}}
                         </span>
                     </div>
                 </div>
             </div>
-
-
             }
-
         </div>
     </section>
 
@@ -36,12 +34,188 @@
     </app-alert>
     }
 
-    <!-- Dashboard Content - Menu items are now in the sidebar -->
-    <div class="dashboard-content">
-        <h2 class="dashboard-title">Dashboard Overview</h2>
-        <p class="dashboard-description">
-            Use the navigation menu on the left to access different sections of the application.
-            Select a menu item to get started.
-        </p>
+    <!-- Admin Dashboard Title -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <div class="flex justify-between items-start flex-wrap gap-4">
+            <div>
+                <h2 class="text-2xl font-semibold text-green-800 mb-2">Admin Dashboard</h2>
+                <p class="text-gray-600">System-wide overview and management</p>
+            </div>
+        </div>
     </div>
+
+    @if (!loading() && statistics()) {
+    <!-- Company Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <app-stats-card
+            [title]="'Total Companies'"
+            [count]="statistics()!.total_companies"
+            [icon]="'business'"
+            [url]="'/companies'"
+            [iconBackgroundColor]="'#1976d2'"
+            [description]="'All registered companies'">
+        </app-stats-card>
+
+        <app-stats-card
+            [title]="'Active Companies'"
+            [count]="statistics()!.active_companies"
+            [icon]="'verified'"
+            [url]="'/companies'"
+            [iconBackgroundColor]="'#2e7d32'"
+            [description]="'Companies with active licenses'">
+        </app-stats-card>
+
+        <app-stats-card
+            [title]="'Inactive Companies'"
+            [count]="statistics()!.inactive_companies"
+            [icon]="'pause_circle'"
+            [url]="'/companies'"
+            [iconBackgroundColor]="'#f57c00'"
+            [description]="'Companies with inactive status'">
+        </app-stats-card>
+
+        <app-stats-card
+            [title]="'Expired Companies'"
+            [count]="statistics()!.expired_companies"
+            [icon]="'event_busy'"
+            [url]="'/companies'"
+            [iconBackgroundColor]="'#d32f2f'"
+            [description]="'Companies with expired licenses'">
+        </app-stats-card>
+    </div>
+
+    <!-- License & User Management Section -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <mat-accordion>
+            <mat-expansion-panel [expanded]="true">
+                <mat-expansion-panel-header>
+                    <mat-panel-title class="flex items-center gap-2">
+                        <mat-icon class="text-blue-700">assignment</mat-icon>
+                        <span class="font-semibold text-lg">License & User Management</span>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <app-stats-card
+                            [title]="'Expiring Soon'"
+                            [count]="statistics()!.expiring_soon"
+                            [icon]="'warning'"
+                            [url]="'/companies?backup_filter=expiring_soon'"
+                            [iconBackgroundColor]="'#ff9800'"
+                            [description]="'Licenses expiring in 30 days'"
+                            [tooltip]="'Companies with active licenses expiring within the next 30 days'">
+                        </app-stats-card>
+
+                        <app-stats-card
+                            [title]="'Total Company Users'"
+                            [count]="statistics()!.total_company_users"
+                            [icon]="'group'"
+                            [url]="'/users'"
+                            [iconBackgroundColor]="'#1976d2'"
+                            [description]="'All registered company users'">
+                        </app-stats-card>
+
+                        <app-stats-card
+                            [title]="'Recently Active'"
+                            [count]="statistics()!.recently_active_users"
+                            [icon]="'trending_up'"
+                            [url]="'/users'"
+                            [iconBackgroundColor]="'#2e7d32'"
+                            [description]="'Users logged in last 7 days'">
+                        </app-stats-card>
+
+                        <app-stats-card
+                            [title]="'Inactive Users'"
+                            [count]="statistics()!.inactive_users"
+                            [icon]="'person_off'"
+                            [url]="'/users'"
+                            [iconBackgroundColor]="'#f57c00'"
+                            [description]="'Not logged in for 30+ days'"
+                            [tooltip]="'Users who have not logged in for 30 days or have never logged in'">
+                        </app-stats-card>
+                    </div>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+
+    <!-- Backup Status Section -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <mat-accordion>
+            <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                    <mat-panel-title class="flex items-center gap-2">
+                        <mat-icon class="text-purple-700">backup</mat-icon>
+                        <span class="font-semibold text-lg">Database Backup Status</span>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <app-stats-card
+                            [title]="'No Backup (Week)'"
+                            [count]="statistics()!.no_backup_last_week"
+                            [icon]="'report_problem'"
+                            [url]="'/companies?backup_filter=no_backup_week'"
+                            [iconBackgroundColor]="'#d32f2f'"
+                            [description]="'No backup in last 7 days'">
+                        </app-stats-card>
+
+                        <app-stats-card
+                            [title]="'No Backup (Month)'"
+                            [count]="statistics()!.no_backup_last_month"
+                            [icon]="'warning'"
+                            [url]="'/companies?backup_filter=no_backup_month'"
+                            [iconBackgroundColor]="'#f57c00'"
+                            [description]="'No backup in last 30 days'">
+                        </app-stats-card>
+
+                        <app-stats-card
+                            [title]="'No Backup (Year)'"
+                            [count]="statistics()!.no_backup_last_year"
+                            [icon]="'error_outline'"
+                            [url]="'/companies?backup_filter=no_backup_year'"
+                            [iconBackgroundColor]="'#ff9800'"
+                            [description]="'No backup in last year'">
+                        </app-stats-card>
+
+                        <app-stats-card
+                            [title]="'Never Uploaded'"
+                            [count]="statistics()!.never_uploaded"
+                            [icon]="'cloud_off'"
+                            [url]="'/companies?backup_filter=never_uploaded'"
+                            [iconBackgroundColor]="'#9e9e9e'"
+                            [description]="'No database ever uploaded'">
+                        </app-stats-card>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <app-stats-card
+                            [title]="'Recent Uploads'"
+                            [count]="statistics()!.recent_uploads"
+                            [icon]="'cloud_upload'"
+                            [iconBackgroundColor]="'#2e7d32'"
+                            [description]="'Uploads in last 7 days'">
+                        </app-stats-card>
+
+                        <app-stats-card
+                            [title]="'Total Storage'"
+                            [count]="statistics()!.total_storage_formatted"
+                            [icon]="'storage'"
+                            [iconBackgroundColor]="'#1976d2'"
+                            [description]="'Total database storage used'">
+                        </app-stats-card>
+                    </div>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+    }
+
+    @if (loading()) {
+    <div class="flex justify-center items-center py-12">
+        <p class="text-gray-500">Loading dashboard statistics...</p>
+    </div>
+    }
 </div>

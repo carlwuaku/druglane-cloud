@@ -19,6 +19,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('/signup', [\App\Http\Controllers\Api\AuthController::class,'signup']);
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class,'login']);
 
+// Password reset routes
+Route::post('/password/forgot', [\App\Http\Controllers\Api\PasswordResetController::class, 'sendResetLink']);
+Route::post('/password/reset', [\App\Http\Controllers\Api\PasswordResetController::class, 'resetPassword']);
+Route::post('/password/verify-token', [\App\Http\Controllers\Api\PasswordResetController::class, 'verifyToken']);
+
 // Backward compatibility routes for desktop apps (legacy endpoints)
 Route::get('/api_admin/findBranchByKey', [\App\Http\Controllers\Api\LicenseController::class, 'findBranchByKey']);
 Route::post('/api_admin/receive_file', [\App\Http\Controllers\Api\DatabaseUploadController::class, 'receive_file']);
@@ -59,6 +64,9 @@ Route::middleware(['auth:sanctum', 'active', 'license.active'])->group(function 
         Route::post('/companies/{company}/activate', [\App\Http\Controllers\Api\CompanyController::class, 'activate']);
         Route::post('/companies/{company}/deactivate', [\App\Http\Controllers\Api\CompanyController::class, 'deactivate']);
         Route::post('/companies/{company}/renew-license', [\App\Http\Controllers\Api\CompanyController::class, 'renewLicense']);
+
+        // Admin statistics
+        Route::get('/admin/statistics', [\App\Http\Controllers\Api\CompanyController::class, 'getAdminStatistics']);
     });
 
     // Company users can view their own company

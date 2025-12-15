@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\User;
+use App\Models\CompanyDatabaseUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class CompanyController extends Controller
 {
@@ -55,7 +58,9 @@ class CompanyController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Company::with(['users']);
+        $query = Company::with(['users', 'databaseUploads' => function($q) {
+            $q->latest()->limit(1);
+        }]);
 
         // Search filter
         if ($request->has('search')) {
@@ -70,6 +75,37 @@ class CompanyController extends Controller
         // Status filter
         if ($request->has('status')) {
             $query->where('license_status', $request->input('status'));
+        }
+
+        // Backup status filters
+        if ($request->has('backup_filter')) {
+            $backupFilter = $request->input('backup_filter');
+
+            switch($backupFilter) {
+                case 'no_backup_week':
+                    $query->whereDoesntHave('databaseUploads', function($q) {
+                        $q->where('created_at', '>=', now()->subWeek());
+                    });
+                    break;
+                case 'no_backup_month':
+                    $query->whereDoesntHave('databaseUploads', function($q) {
+                        $q->where('created_at', '>=', now()->subMonth());
+                    });
+                    break;
+                case 'no_backup_year':
+                    $query->whereDoesntHave('databaseUploads', function($q) {
+                        $q->where('created_at', '>=', now()->subYear());
+                    });
+                    break;
+                case 'never_uploaded':
+                    $query->whereDoesntHave('databaseUploads');
+                    break;
+                case 'expiring_soon':
+                    $query->where('license_status', 'active')
+                        ->where('license_expires_at', '<=', now()->addDays(30))
+                        ->where('license_expires_at', '>', now());
+                    break;
+            }
         }
 
         // Pagination
@@ -479,5 +515,114 @@ class CompanyController extends Controller
             'message' => 'Company license renewed successfully',
             'company' => $company
         ]);
+    }
+
+    /**
+     * Get admin dashboard statistics.
+     */
+    public function getAdminStatistics(Request $request)
+    {
+        // Total companies count
+        $totalCompanies = Company::count();
+        $activeCompanies = Company::where('license_status', 'active')->count();
+        $inactiveCompanies = Company::where('license_status', 'inactive')->count();
+        $expiredCompanies = Company::where('license_status', 'expired')->count();
+
+        // Companies expiring soon (within 30 days)
+        $expiringSoon = Company::where('license_status', 'active')
+            ->where('license_expires_at', '<=', now()->addDays(30))
+            ->where('license_expires_at', '>', now())
+            ->count();
+
+        // Get company users who logged in recently (last 7 days)
+        $recentlyActiveUsers = User::whereHas('role', function($q) {
+                $q->where('name', 'company_user');
+            })
+            ->whereNotNull('last_login_at')
+            ->where('last_login_at', '>=', now()->subDays(7))
+            ->count();
+
+        // Get total company users
+        $totalCompanyUsers = User::whereHas('role', function($q) {
+            $q->where('name', 'company_user');
+        })->count();
+
+        // Get inactive users (not logged in for 30 days or never logged in)
+        $inactiveUsers = User::whereHas('role', function($q) {
+                $q->where('name', 'company_user');
+            })
+            ->where(function($q) {
+                $q->whereNull('last_login_at')
+                  ->orWhere('last_login_at', '<', now()->subDays(30));
+            })
+            ->count();
+
+        // Companies without database upload in the last week
+        $noBackupLastWeek = Company::whereDoesntHave('databaseUploads', function($q) {
+            $q->where('created_at', '>=', now()->subWeek());
+        })->count();
+
+        // Companies without database upload in the last month
+        $noBackupLastMonth = Company::whereDoesntHave('databaseUploads', function($q) {
+            $q->where('created_at', '>=', now()->subMonth());
+        })->count();
+
+        // Companies without database upload in the last year
+        $noBackupLastYear = Company::whereDoesntHave('databaseUploads', function($q) {
+            $q->where('created_at', '>=', now()->subYear());
+        })->count();
+
+        // Companies that have never uploaded
+        $neverUploaded = Company::whereDoesntHave('databaseUploads')->count();
+
+        // Recent database uploads (last 7 days)
+        $recentUploads = CompanyDatabaseUpload::where('created_at', '>=', now()->subDays(7))->count();
+
+        // Total storage used
+        $totalStorage = CompanyDatabaseUpload::selectRaw('company_id, MAX(created_at) as latest_upload')
+            ->groupBy('company_id')
+            ->get()
+            ->map(function($upload) {
+                return CompanyDatabaseUpload::where('company_id', $upload->company_id)
+                    ->where('created_at', $upload->latest_upload)
+                    ->first();
+            })
+            ->sum('file_size');
+
+        return response()->json([
+            'total_companies' => $totalCompanies,
+            'active_companies' => $activeCompanies,
+            'inactive_companies' => $inactiveCompanies,
+            'expired_companies' => $expiredCompanies,
+            'expiring_soon' => $expiringSoon,
+            'total_company_users' => $totalCompanyUsers,
+            'recently_active_users' => $recentlyActiveUsers,
+            'inactive_users' => $inactiveUsers,
+            'no_backup_last_week' => $noBackupLastWeek,
+            'no_backup_last_month' => $noBackupLastMonth,
+            'no_backup_last_year' => $noBackupLastYear,
+            'never_uploaded' => $neverUploaded,
+            'recent_uploads' => $recentUploads,
+            'total_storage_bytes' => $totalStorage,
+            'total_storage_formatted' => $this->formatBytes($totalStorage),
+        ]);
+    }
+
+    /**
+     * Format bytes to human readable format
+     */
+    private function formatBytes($bytes, $precision = 2)
+    {
+        if ($bytes === null || $bytes === 0) {
+            return '0 Bytes';
+        }
+
+        $units = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

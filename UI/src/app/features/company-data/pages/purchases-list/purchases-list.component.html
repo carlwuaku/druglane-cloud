@@ -169,6 +169,7 @@
     <!-- Purchases List Table -->
     <app-load-data-list [url]="apiUrl" [preload]="true" [showPagination]="true" [showSearch]="true" [showExport]="true"
         [showActions]="false" [rowSelection]="undefined" [listTitleField]="'code'" [emptyMessage]="'No purchases found'"
-        [limit]="100" [useResponseFilters]="true">
+        [limit]="100" [useResponseFilters]="true" [filterFormType]="'emit'"
+        [onFilterSubmitted]="handleFilterSubmit">
     </app-load-data-list>
 </app-page-container>

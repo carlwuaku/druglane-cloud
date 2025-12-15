@@ -237,18 +237,56 @@
                 <div class="p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <app-stats-card [title]="'Out of Stock'" [count]="productStats()!.zero_stock_count"
-                            [icon]="'remove_shopping_cart'" [url]="'/products'" [iconBackgroundColor]="'#f44336'"
+                            [icon]="'remove_shopping_cart'" [url]="'/products?stock_filter=zero'" [iconBackgroundColor]="'#f44336'"
                             [description]="'Zero quantity products'">
                         </app-stats-card>
 
                         <app-stats-card [title]="'Below Min Stock'" [count]="productStats()!.below_min_stock_count"
-                            [icon]="'warning'" [url]="'/products'" [iconBackgroundColor]="'#ff9800'"
+                            [icon]="'warning'" [url]="'/products?stock_filter=below_min'" [iconBackgroundColor]="'#ff9800'"
                             [description]="'Products below minimum threshold'">
                         </app-stats-card>
 
                         <app-stats-card [title]="'Above Max Stock'" [count]="productStats()!.above_max_stock_count"
-                            [icon]="'inventory'" [url]="'/products'" [iconBackgroundColor]="'#7b1fa2'"
+                            [icon]="'inventory'" [url]="'/products?stock_filter=above_max'" [iconBackgroundColor]="'#7b1fa2'"
                             [description]="'Products above maximum threshold'">
+                        </app-stats-card>
+                    </div>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+    }
+
+    <!-- Product Expiry Section -->
+    @if (productStats()) {
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <mat-accordion>
+            <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                    <mat-panel-title class="flex items-center gap-2">
+                        <mat-icon class="text-red-700">event_busy</mat-icon>
+                        <span class="font-semibold text-lg">Product Expiry Status</span>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <app-stats-card [title]="'Expired (In Stock)'" [count]="productStats()!.expired_with_stock_count"
+                            [icon]="'dangerous'" [url]="'/products?stock_filter=expired_with_stock'" [iconBackgroundColor]="'#d32f2f'"
+                            [description]="'Products already expired with stock'"
+                            [tooltip]="'Products that have passed their expiry date and still have stock available'">
+                        </app-stats-card>
+
+                        <app-stats-card [title]="'Expiring This Month'" [count]="productStats()!.expiring_this_month_count"
+                            [icon]="'event'" [url]="'/products?stock_filter=expiring_this_month'" [iconBackgroundColor]="'#ff9800'"
+                            [description]="'Products expiring this month'"
+                            [tooltip]="'Products with stock that will expire within this month'">
+                        </app-stats-card>
+
+                        <app-stats-card [title]="'Expiring Next Month'" [count]="productStats()!.expiring_next_month_count"
+                            [icon]="'event_note'" [url]="'/products?stock_filter=expiring_next_month'" [iconBackgroundColor]="'#ffa726'"
+                            [description]="'Products expiring next month'"
+                            [tooltip]="'Products with stock that will expire next month'">
                         </app-stats-card>
                     </div>
                 </div>

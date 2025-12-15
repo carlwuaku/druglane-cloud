@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Company } from '../../../../core/models/user.model';
 import { IFormGenerator, FormField } from '../../../../libs/components/form-generator/form-generator.interface';
@@ -14,10 +14,18 @@ import { CompanyService } from '../../services/company.service';
     templateUrl: './companies-list.component.html',
     styleUrl: './companies-list.component.scss'
 })
-export class CompaniesListComponent {
+export class CompaniesListComponent implements OnInit {
     private companyService = inject(CompanyService);
     private router = inject(Router);
+    private route = inject(ActivatedRoute);
     private notify = inject(NotifyService);
+
+    // Signal to store active filters
+    activeFilters = signal<{
+        search?: string;
+        status?: string;
+        backup_filter?: string;
+    }>({});
 
     displayedColumns: string[] = [
         'name',
@@ -53,35 +61,39 @@ export class CompaniesListComponent {
     filters: IFormGenerator[] = [
         {
             ...new FormField('text'),
-            name: 'name',
-            label: 'Company Name',
-            placeholder: 'Search by name...',
+            name: 'search',
+            label: 'Search',
+            placeholder: 'Search by name, email, or license key...',
             required: false,
             value: ''
         },
         {
             ...new FormField('select'),
-            name: 'license_status',
+            name: 'status',
             label: 'License Status',
             required: false,
             value: '',
             options: [
                 { key: '', value: 'All' },
                 { key: 'active', value: 'Active' },
+                { key: 'inactive', value: 'Inactive' },
                 { key: 'expired', value: 'Expired' },
                 { key: 'suspended', value: 'Suspended' }
             ]
         },
         {
             ...new FormField('select'),
-            name: 'is_activated',
-            label: 'Activation Status',
+            name: 'backup_filter',
+            label: 'Backup Status',
             required: false,
             value: '',
             options: [
                 { key: '', value: 'All' },
-                { key: '1', value: 'Activated' },
-                { key: '0', value: 'Not Activated' }
+                { key: 'no_backup_week', value: 'No Backup (Week)' },
+                { key: 'no_backup_month', value: 'No Backup (Month)' },
+                { key: 'no_backup_year', value: 'No Backup (Year)' },
+                { key: 'never_uploaded', value: 'Never Uploaded' },
+                { key: 'expiring_soon', value: 'Expiring Soon (30 days)' }
             ]
         }
     ];
@@ -177,8 +189,59 @@ export class CompaniesListComponent {
         this.router.navigate(['/companies/new']);
     }
 
+    ngOnInit(): void {
+        // Check for query parameters and apply filters
+        this.route.queryParams.subscribe(params => {
+            const filters: any = {};
+
+            if (params['search']) {
+                filters.search = params['search'];
+                const searchFilter = this.filters.find(f => f.name === 'search');
+                if (searchFilter) searchFilter.value = params['search'];
+            }
+
+            if (params['status']) {
+                filters.status = params['status'];
+                const statusFilter = this.filters.find(f => f.name === 'status');
+                if (statusFilter) statusFilter.value = params['status'];
+            }
+
+            if (params['backup_filter']) {
+                filters.backup_filter = params['backup_filter'];
+                const backupFilter = this.filters.find(f => f.name === 'backup_filter');
+                if (backupFilter) backupFilter.value = params['backup_filter'];
+            }
+
+            this.activeFilters.set(filters);
+        });
+    }
+
     isLicenseExpired(company: Company): boolean {
         if (!company.license_expires_at) return false;
         return new Date(company.license_expires_at) < new Date();
     }
+
+    // Custom value transformer for last backup column
+    getLastBackupDate(company: any): string {
+        if (company.database_uploads && company.database_uploads.length > 0) {
+            const lastUpload = company.database_uploads[0];
+            const uploadDate = new Date(lastUpload.created_at);
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - uploadDate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+            if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+            return `${Math.floor(diffDays / 365)} years ago`;
+        }
+        return 'Never';
+    }
+
+    // Custom value transformers for the table
+    valueTransformers: { [key: string]: (row: any) => string } = {
+        'last_backup': (row: any) => this.getLastBackupDate(row)
+    };
 }

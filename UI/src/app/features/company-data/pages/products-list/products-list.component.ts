@@ -1,5 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { LoadDataListComponent } from '../../../../libs/components/load-data-list/load-data-list.component';
 import { PageContainerComponent } from '../../../../libs/components/page-container/page-container.component';
 import { CompanyDataService, ProductStatistics } from '../../services/company-data.service';
@@ -15,6 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
     styleUrl: './products-list.component.scss'
 })
 export class ProductsListComponent implements OnInit {
+    private route = inject(ActivatedRoute);
+
     apiUrl = signal<string>('api/company-data/products');
 
     // Statistics signals
@@ -25,6 +28,14 @@ export class ProductsListComponent implements OnInit {
     constructor(private companyDataService: CompanyDataService) {}
 
     ngOnInit(): void {
+        // Check for query parameters (from dashboard links)
+        this.route.queryParams.subscribe(params => {
+            const stockFilter = params['stock_filter'];
+            if (stockFilter) {
+                this.filterProducts(stockFilter);
+            }
+        });
+
         this.loadStatistics();
     }
 
