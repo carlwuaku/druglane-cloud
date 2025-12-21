@@ -1,0 +1,394 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main  # Deploy when pushing to main branch
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ==================== Backend Setup ====================
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, json, bcmath, pdo, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      # ==================== Frontend Setup ====================
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: UI/package-lock.json
+
+      - name: Install Angular dependencies
+        working-directory: ./UI
+        run: npm ci
+
+      - name: Build Angular app
+        working-directory: ./UI
+        run: npm run build
+
+      # ==================== Prepare Deployment Package ====================
+      - name: Create deployment package
+        run: |
+          # Create a clean directory for deployment
+          mkdir -p deployment
+
+          # Copy Laravel files (exclude dev files and cache)
+          rsync -av --exclude-from='.github/workflows/exclude-deploy.txt' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='UI' \
+            --exclude='tests' \
+            --exclude='.env' \
+            --exclude='.env.example' \
+            --exclude='phpunit.xml' \
+            --exclude='.editorconfig' \
+            --exclude='.gitignore' \
+            --exclude='.gitattributes' \
+            --exclude='*.md' \
+            --exclude='storage/app/backups' \
+            ./ deployment/
+
+          # Copy built Angular files to Laravel public directory
+          mkdir -p deployment/public/app
+          cp -r UI/dist/practitioners-portal/browser/* deployment/public/app/
+
+          # Create necessary directories with proper permissions
+          mkdir -p deployment/storage/framework/{sessions,views,cache}
+          mkdir -p deployment/storage/logs
+          mkdir -p deployment/bootstrap/cache
+
+          # Create .htaccess for Laravel if not exists
+          if [ ! -f deployment/public/.htaccess ]; then
+            cat > deployment/public/.htaccess << 'EOF'
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+
+              # Handle Angular routes
+              RewriteCond %{REQUEST_URI} ^/app
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteRule ^app/(.*)$ /app/index.html [L]
+
+              # Handle Laravel routes
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteRule ^ index.php [L]
+          </IfModule>
+          EOF
+          fi
+
+      # ==================== Deploy to Hostinger ====================
+      - name: Deploy to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./deployment/
+          server-dir: ./  # Adjust based on your Hostinger subdomain setup
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            **/*.md
+          dangerous-clean-slate: false
+
+      # ==================== Post-Deployment Setup Files ====================
+      - name: Create post-deployment setup script
+        run: |
+          # Create a PHP script that will run post-deployment tasks
+          cat > deployment/post-deploy.php << 'EOF'
+          <?php
+          /**
+           * Post-Deployment Setup Script
+           *
+           * This script handles tasks that normally require SSH access.
+           * Access this file ONCE after deployment: https://yourdomain.com/post-deploy.php
+           *
+           * IMPORTANT: Delete this file after running it successfully!
+           */
+
+          // Security: Only run if accessed directly (not through web server routing)
+          if (php_sapi_name() !== 'cli' && !isset($_GET['run_setup'])) {
+              die('Access this script with ?run_setup parameter');
+          }
+
+          echo "<h1>Post-Deployment Setup</h1>";
+          echo "<pre>";
+
+          // Change to the application root
+          chdir(__DIR__);
+
+          echo "=== Starting Post-Deployment Setup ===\n\n";
+
+          // 1. Set permissions (as much as possible via PHP)
+          echo "1. Setting directory permissions...\n";
+
+          $directories = [
+              'storage/framework/sessions',
+              'storage/framework/views',
+              'storage/framework/cache',
+              'storage/logs',
+              'bootstrap/cache'
+          ];
+
+          foreach ($directories as $dir) {
+              if (!file_exists($dir)) {
+                  mkdir($dir, 0755, true);
+                  echo "   Created: $dir\n";
+              }
+              @chmod($dir, 0755);
+          }
+
+          // Try to set storage permissions
+          if (file_exists('storage')) {
+              @chmod('storage', 0755);
+          }
+          if (file_exists('bootstrap/cache')) {
+              @chmod('bootstrap/cache', 0755);
+          }
+
+          echo "   ✓ Permissions set\n\n";
+
+          // 2. Clear cache
+          echo "2. Clearing cache...\n";
+
+          if (file_exists('bootstrap/cache/config.php')) {
+              unlink('bootstrap/cache/config.php');
+              echo "   Cleared config cache\n";
+          }
+
+          if (file_exists('bootstrap/cache/routes-v7.php')) {
+              unlink('bootstrap/cache/routes-v7.php');
+              echo "   Cleared route cache\n";
+          }
+
+          // Clear view cache
+          $viewCache = 'storage/framework/views';
+          if (is_dir($viewCache)) {
+              $files = glob($viewCache . '/*');
+              foreach($files as $file) {
+                  if(is_file($file)) {
+                      unlink($file);
+                  }
+              }
+              echo "   Cleared view cache\n";
+          }
+
+          echo "   ✓ Cache cleared\n\n";
+
+          // 3. Check environment file
+          echo "3. Checking environment configuration...\n";
+
+          if (!file_exists('.env')) {
+              echo "   ⚠ WARNING: .env file not found!\n";
+              echo "   Please create .env file from .env.production.example\n";
+          } else {
+              echo "   ✓ .env file exists\n";
+
+              // Load environment
+              if (file_exists('vendor/autoload.php')) {
+                  require 'vendor/autoload.php';
+
+                  $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+                  $dotenv->load();
+
+                  // Check critical environment variables
+                  $required = ['APP_KEY', 'APP_URL', 'DB_CONNECTION'];
+                  $missing = [];
+
+                  foreach ($required as $var) {
+                      if (empty($_ENV[$var])) {
+                          $missing[] = $var;
+                      }
+                  }
+
+                  if (!empty($missing)) {
+                      echo "   ⚠ WARNING: Missing environment variables:\n";
+                      foreach ($missing as $var) {
+                          echo "      - $var\n";
+                      }
+                  } else {
+                      echo "   ✓ Critical environment variables set\n";
+                  }
+              }
+          }
+          echo "\n";
+
+          // 4. Check database
+          echo "4. Checking database...\n";
+
+          if (file_exists('database/database.sqlite')) {
+              echo "   ✓ Database file exists\n";
+              @chmod('database/database.sqlite', 0664);
+          } else {
+              echo "   ⚠ WARNING: Database file not found!\n";
+              echo "   Creating database file...\n";
+              if (!is_dir('database')) {
+                  mkdir('database', 0755, true);
+              }
+              touch('database/database.sqlite');
+              @chmod('database/database.sqlite', 0664);
+              echo "   ✓ Database file created\n";
+              echo "   ℹ You need to run migrations manually via Hostinger File Manager or cPanel\n";
+          }
+          echo "\n";
+
+          // 5. Cache configuration (if Laravel is available)
+          echo "5. Caching configuration...\n";
+
+          if (file_exists('artisan') && file_exists('vendor/autoload.php')) {
+              // Try to cache config via exec if available
+              if (function_exists('exec')) {
+                  $output = [];
+                  exec('cd ' . __DIR__ . ' && php artisan config:cache 2>&1', $output);
+                  if (!empty($output)) {
+                      echo "   Config cache: " . implode("\n   ", $output) . "\n";
+                  }
+
+                  $output = [];
+                  exec('cd ' . __DIR__ . ' && php artisan route:cache 2>&1', $output);
+                  if (!empty($output)) {
+                      echo "   Route cache: " . implode("\n   ", $output) . "\n";
+                  }
+
+                  echo "   ✓ Laravel cache created\n";
+              } else {
+                  echo "   ⚠ exec() function disabled\n";
+                  echo "   ℹ You need to run 'php artisan config:cache' manually\n";
+              }
+          } else {
+              echo "   ⚠ Laravel not fully installed\n";
+          }
+          echo "\n";
+
+          // 6. Final status
+          echo "=== Setup Complete ===\n\n";
+          echo "Next steps:\n";
+          echo "1. ✓ Deployment files uploaded\n";
+          echo "2. ✓ Directories created\n";
+          echo "3. ✓ Cache cleared\n";
+          echo "4. ⚠ IMPORTANT: Delete this file (post-deploy.php) for security!\n";
+          echo "5. Test your application: " . ($_ENV['APP_URL'] ?? 'https://yourdomain.com') . "\n\n";
+
+          echo "If you need to run migrations:\n";
+          echo "- Use Hostinger File Manager → Terminal\n";
+          echo "- Or use cPanel Terminal (if available)\n";
+          echo "- Run: php artisan migrate --force\n\n";
+
+          echo "</pre>";
+          echo "<p><strong style='color: red;'>SECURITY: Delete this file now!</strong></p>";
+          EOF
+
+          # Create README for post-deployment
+          cat > deployment/POST_DEPLOY_README.txt << 'EOF'
+          ================================================================
+          POST-DEPLOYMENT INSTRUCTIONS (No SSH Required)
+          ================================================================
+
+          After uploading files via FTP, follow these steps:
+
+          STEP 1: Create .env file
+          ----------------------------------------------------------------
+          1. Copy .env.production.example to .env
+          2. Update these values:
+             - APP_KEY (generate with: php artisan key:generate --show)
+             - APP_URL=https://youractualdomain.com
+             - DB_DATABASE=/home/username/public_html/app/database/database.sqlite
+             - MAIL_* settings
+
+          STEP 2: Run post-deployment setup
+          ----------------------------------------------------------------
+          Visit: https://yourdomain.com/post-deploy.php?run_setup
+
+          This will:
+          - Create necessary directories
+          - Set permissions (as much as possible)
+          - Clear cache
+          - Check environment configuration
+          - Create database file if needed
+
+          STEP 3: Delete post-deploy.php
+          ----------------------------------------------------------------
+          IMPORTANT: Delete post-deploy.php file for security!
+
+          STEP 4: Run migrations (via Hostinger File Manager)
+          ----------------------------------------------------------------
+          1. Login to Hostinger File Manager
+          2. Navigate to your app directory
+          3. Right-click → Terminal (if available)
+          4. Run: php artisan migrate --force
+
+          OR use Hostinger's PHP tool:
+          1. Create a file: run-migrations.php
+          2. Add this code:
+             <?php
+             chdir(__DIR__);
+             require 'vendor/autoload.php';
+             $app = require_once 'bootstrap/app.php';
+             $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+             $kernel->call('migrate', ['--force' => true]);
+             echo "Migrations completed!";
+          3. Visit it once in browser, then delete it
+
+          STEP 5: Set permissions (via File Manager)
+          ----------------------------------------------------------------
+          Set these permissions in Hostinger File Manager:
+          - storage/ → 755 (recursive)
+          - bootstrap/cache/ → 755 (recursive)
+          - database/database.sqlite → 664
+
+          STEP 6: Test deployment
+          ----------------------------------------------------------------
+          1. Visit: https://yourdomain.com/api/health
+          2. Visit: https://yourdomain.com/app
+          3. Test login functionality
+
+          TROUBLESHOOTING
+          ----------------------------------------------------------------
+          - 500 error: Check storage permissions
+          - Blank page: Check public/.htaccess exists
+          - Database error: Verify .env DB_DATABASE path
+          - CORS error: Update SANCTUM_STATEFUL_DOMAINS in .env
+
+          For detailed help, see HOSTINGER_DEPLOYMENT.md
+          ================================================================
+          EOF
+
+      # ==================== Deployment Notification ====================
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+          fi

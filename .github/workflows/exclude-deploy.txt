@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+UI
+tests
+.env
+.env.example
+phpunit.xml
+.editorconfig
+.gitignore
+.gitattributes
+*.md
+storage/app/backups
+.phpunit.result.cache
+.phpunit.cache
