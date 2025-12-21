@@ -68,7 +68,7 @@ jobs:
 
           # Copy built Angular files to Laravel public directory
           mkdir -p deployment/public/app
-          cp -r UI/dist/practitioners-portal/browser/* deployment/public/app/
+          cp -r UI/dist/browser/* deployment/public/app/
 
           # Create necessary directories with proper permissions
           mkdir -p deployment/storage/framework/{sessions,views,cache}
