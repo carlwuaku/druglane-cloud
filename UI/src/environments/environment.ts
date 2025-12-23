@@ -1,6 +1,6 @@
 export const environment = {
-  production: true,
-  name: "prod",
+    production: true,
+    name: "prod",
 
-  host: "https://licensing.druglanepms.com/",
+    host: "https://cloud.druglanepms.com/",
 };

@@ -46,6 +46,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Deployment Token
+    |--------------------------------------------------------------------------
+    |
+    | This token is used to secure the deployment endpoints that allow running
+    | migrations and other deployment tasks without SSH access. Keep this secure!
+    |
+    */
+
+    'deploy_token' => env('DEPLOY_TOKEN'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Allow Deployment Endpoint
+    |--------------------------------------------------------------------------
+    |
+    | Enable this to allow deployment endpoints in non-production environments.
+    | By default, deployment endpoints only work in production.
+    |
+    */
+
+    'allow_deploy_endpoint' => env('ALLOW_DEPLOY_ENDPOINT', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |

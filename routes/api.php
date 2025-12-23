@@ -15,6 +15,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Deployment routes (protected by token)
+Route::prefix('deploy')->group(function () {
+    Route::post('/migrate', [\App\Http\Controllers\Api\DeploymentController::class, 'migrate']);
+    Route::post('/clear-cache', [\App\Http\Controllers\Api\DeploymentController::class, 'clearCache']);
+    Route::post('/optimize', [\App\Http\Controllers\Api\DeploymentController::class, 'optimize']);
+    Route::get('/status', [\App\Http\Controllers\Api\DeploymentController::class, 'status']);
+});
+
 // Public routes
 Route::post('/signup', [\App\Http\Controllers\Api\AuthController::class,'signup']);
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class,'login']);
