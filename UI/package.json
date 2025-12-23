@@ -1,17 +1,11 @@
 {
-    "name": "practitioners-portal",
+    "name": "druglane-cloud",
     "version": "0.0.0",
     "scripts": {
         "ng": "ng",
         "start": "ng serve --port 4202",
         "build": "ng build",
         "build-prod": "ng build --configuration production ",
-        "build-pcms-staging": "ng build --configuration=pcms-staging",
-        "build-deploy-pcms-staging": "ng build --configuration=pcms-staging && firebase deploy --only hosting:pc-portal-v2",
-        "build-pcms-prod": "ng build --configuration=pcms-production",
-        "build-mdcms-staging": "ng build --configuration=mdcms-staging ",
-        "build-deploy-mdcms-staging": "ng build --configuration=mdcms-staging && firebase deploy --only hosting:mdc-practitioners-portal",
-        "build-mdcms-prod": "ng build --configuration=mdcms-production ",
         "watch": "ng build --watch --configuration development",
         "test": "ng test"
     },

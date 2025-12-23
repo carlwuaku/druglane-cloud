@@ -1,0 +1,82 @@
+name: Deploy Angular App to Subdomain (Simplified)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'UI/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-ui:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: UI/package-lock.json
+
+      - name: Install Angular dependencies
+        working-directory: ./UI
+        run: npm ci
+
+      - name: Build Angular app for production
+        working-directory: ./UI
+        run: npm run build -- --configuration production
+
+      - name: Verify build output
+        run: |
+          echo "📦 Verifying build..."
+          if [ ! -d "UI/dist/browser" ]; then
+            echo "❌ Build failed!"
+            exit 1
+          fi
+          echo "✅ Build completed"
+          du -sh UI/dist/browser/
+
+      # Create .htaccess directly in build output
+      - name: Create .htaccess for SPA routing
+        run: |
+          cat > UI/dist/browser/.htaccess << 'EOF'
+          <IfModule mod_rewrite.c>
+            RewriteEngine On
+            RewriteCond %{REQUEST_FILENAME} -f [OR]
+            RewriteCond %{REQUEST_FILENAME} -d
+            RewriteRule ^ - [L]
+            RewriteRule ^ index.html [L]
+          </IfModule>
+          Options -Indexes
+          ErrorDocument 404 /index.html
+          EOF
+          echo "✅ .htaccess created"
+
+      # Deploy directly from UI/dist/browser/
+      - name: Deploy to subdomain via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.APP_FTP_SERVER }}
+          username: ${{ secrets.APP_FTP_USERNAME }}
+          password: ${{ secrets.APP_FTP_PASSWORD }}
+          local-dir: ./UI/dist/browser/  # Deploy directly from build output
+          server-dir: ./
+          dangerous-clean-slate: true
+          exclude: |
+            **/.git*
+            **/.DS_Store
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          echo "========================================="
+          echo "✅ Angular App Deployed Successfully!"
+          echo "========================================="
+          echo ""
+          echo "🌐 Your app: https://app.yourdomain.com"
+          echo ""
